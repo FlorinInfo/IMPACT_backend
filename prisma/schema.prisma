@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+    id Int @id @default(autoincrement())
+    lastName String
+    firstName String
+    password String
+    phoneNumber String?
+    email String @unique
+    address String
+    status String @default('in asteptare') // aprobat, blocat
+    admin Boolean @default(false)
+    locationRole String @default('cetatean') // administrator, moderator
+    createTime DateTime @default(now())
+    favoriteArticles Article[]
+    ownedArticles Article[]
+}
+
+model AccountRequest {
+    id Int @id @default(autoincrement())
+    user User
+    identityCard String
+    createTime DateTime @default(now())
+}
+
+model Log {
+    id Int @id @default(autoincrement())
+    user User
+    action String
+    createTime DateTime @default(now())
+}
+
+model Article {
+    id Int @id @default(autoincrement())
+    title String
+    description String
+    views Int @default(0)
+    upvotes Int @default(0)
+    upvoteUsers User[]
+    downvotes Int @default(0)
+    downvoteUsers User[]
+    user User
+    createTime DateTime @default(now())
+    status String @default('creat') // trimis, vizionat, in lucru, efectuat
+    articleGalery MediaFile[] 
+}
+
+model MediaFile {
+    id Int @id @default(autoincrement())
+    article Article
+    type String
+    locationOnDisk String
+    createTime DateTime @default(now())
+}
+
+model Comment {
+    id Int @id @default(autoincrement())
+    author User
+    commentForArticle Boolean
+    article Article?
+    comment Comment?
+    text String
+    createTime DateTime @default(now())
+}
+
+model County {
+    id Int @id @default(autoincrement())
+    name String
+    administrator User
+    moderators User[]
+}
+
+model Village {
+    id Int @id @default(autoincrement())
+    county County
+    name String
+    administrator User
+    moderators User[]
+}
+
+model Locality {
+    id Int @id @default(autoincrement())
+    village Village
+    administrator User
+    moderators User[]
+}

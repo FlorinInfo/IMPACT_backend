@@ -1,0 +1,29 @@
+{
+    "name": "fiicode_backend",
+    "type": "module",
+    "version": "1.0.0",
+    "description": "Backend for fiicode 2022",
+    "main": "app.js",
+    "scripts": {
+        "dev": "nodemon app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/FlorinInfo/FIICODE_backend.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/FlorinInfo/FIICODE_backend/issues"
+    },
+    "homepage": "https://github.com/FlorinInfo/FIICODE_backend#readme",
+    "dependencies": {
+        "@prisma/client": "^3.10.0",
+        "argon2": "^0.28.5",
+        "express": "^4.17.3"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.15",
+        "prisma": "^3.10.0"
+    }
+}
