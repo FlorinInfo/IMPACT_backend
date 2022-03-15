@@ -10,87 +10,153 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model SuperUser {
+  id          Int       @id @default(autoincrement())
+  lastName    String
+  firstName   String
+  password    String
+  address     String
+  email       String    @unique
+  phoneNumber String?
+  admin       Boolean   @default(false)
+  zoneRole    ZoneRole
+  zoneType    ZoneType
+  village     Village?  @relation("VillageSuperUser")
+  villageId   Int?
+  county      County?   @relation("CountySuperUser")
+  countyId    Int?
+  locality    Locality? @relation("LocalitySuperUser")
+  localityId  Int?
+  County      County?   @relation(fields: [countyId], references: [id])
+  Village     Village?  @relation(fields: [villageId], references: [id])
+  Locality    Locality? @relation(fields: [localityId], references: [id])
+}
+
+enum ZoneRole {
+  ADMINISTRATOR
+  MODERATOR
+}
+
+enum ZoneType {
+  VILLAGE
+  LOCALITY
+  COUNTY
+}
+
 model User {
-    id Int @id @default(autoincrement())
-    lastName String
-    firstName String
-    password String
-    phoneNumber String?
-    email String @unique
-    address String
-    status String @default('in asteptare') // aprobat, blocat
-    admin Boolean @default(false)
-    locationRole String @default('cetatean') // administrator, moderator
-    createTime DateTime @default(now())
-    favoriteArticles Article[]
-    ownedArticles Article[]
+  id               Int             @id @default(autoincrement())
+  lastName         String
+  firstName        String
+  password         String
+  address          String
+  email            String          @unique
+  points           Int             @default(0)
+  phoneNumber      String?
+  accountRequest   AccountRequest?
+  createTime       DateTime        @default(now())
+  status           UserStatus      @default(IN_ASTEPTARE)
+  ownedArticles    Article[]       @relation("OwnedArticles")
+  favoriteArticles Article[]       @relation("_FavoriteUserArticle")
+  upvotedPosts     Article[]       @relation("_UpvotedUserArticle")
+  downvotedPosts   Article[]       @relation("_DownvotedUserArticle")
+  Log              Log[]
+  Comment          Comment[]
+}
+
+enum UserStatus {
+  IN_ASTEPTARE
+  APROBAT
+  BLOCAT
 }
 
 model AccountRequest {
-    id Int @id @default(autoincrement())
-    user User
-    identityCard String
-    createTime DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int      @unique
+  identityCard String
+  createTime   DateTime @default(now())
 }
 
 model Log {
-    id Int @id @default(autoincrement())
-    user User
-    action String
-    createTime DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  action     String
+  createTime DateTime @default(now())
 }
 
 model Article {
-    id Int @id @default(autoincrement())
-    title String
-    description String
-    views Int @default(0)
-    upvotes Int @default(0)
-    upvoteUsers User[]
-    downvotes Int @default(0)
-    downvoteUsers User[]
-    user User
-    createTime DateTime @default(now())
-    status String @default('creat') // trimis, vizionat, in lucru, efectuat
-    articleGalery MediaFile[] 
+  id            Int           @id @default(autoincrement())
+  title         String
+  description   String
+  views         Int           @default(0)
+  upvoteUsers   User[]        @relation("_UpvotedUserArticle")
+  downvoteUsers User[]        @relation("_DownvotedUserArticle")
+  favoritedBy   User[]        @relation("_FavoriteUserArticle")
+  author        User          @relation("OwnedArticles", fields: [authorId], references: [id])
+  authorId      Int
+  createTime    DateTime      @default(now())
+  status        ArticleStatus @default(CREAT)
+  articleGalery MediaFile[]
+  comments      Comment[]
+}
+
+enum ArticleStatus {
+  CREAT
+  TRIMIS
+  VIZIONAT
+  IN_LUCRU
+  EFECTUAT
 }
 
 model MediaFile {
-    id Int @id @default(autoincrement())
-    article Article
-    type String
-    locationOnDisk String
-    createTime DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  article        Article  @relation(fields: [articleId], references: [id])
+  articleId      Int
+  type           String
+  locationOnDisk String
+  createTime     DateTime @default(now())
 }
 
 model Comment {
-    id Int @id @default(autoincrement())
-    author User
-    commentForArticle Boolean
-    article Article?
-    comment Comment?
-    text String
-    createTime DateTime @default(now())
+  id                Int       @id @default(autoincrement())
+  author            User      @relation(fields: [authorId], references: [id])
+  authorId          Int
+  commentForArticle Boolean
+  article           Article?  @relation(fields: [articleId], references: [id])
+  articleId         Int?
+  comment           Comment?  @relation("CommentReplies", fields: [commentId], references: [id])
+  replies           Comment[] @relation("CommentReplies")
+  commentId         Int?
+  text              String
+  createTime        DateTime  @default(now())
 }
 
 model County {
-    id Int @id @default(autoincrement())
-    name String
-    administrator User
-    moderators User[]
+  id              Int         @id @default(autoincrement())
+  name            String
+  administrator   SuperUser   @relation("CountySuperUser", fields: [administratorId], references: [id])
+  administratorId Int         @unique
+  moderators      SuperUser[]
+  Village         Village[]
 }
 
 model Village {
-    id Int @id @default(autoincrement())
-    county County
-    name String
-    administrator User
-    moderators User[]
+  id              Int         @id @default(autoincrement())
+  county          County      @relation(fields: [countyId], references: [id])
+  name            String
+  administrator   SuperUser   @relation("VillageSuperUser", fields: [administratorId], references: [id])
+  administratorId Int         @unique
+  moderators      SuperUser[]
+  countyId        Int
+  Locality        Locality[]
 }
 
 model Locality {
-    id Int @id @default(autoincrement())
-    village Village
-    administrator User
-    moderators User[]
+  id              Int         @id @default(autoincrement())
+  village         Village     @relation(fields: [villageId], references: [id])
+  administrator   SuperUser   @relation("LocalitySuperUser", fields: [administratorId], references: [id])
+  administratorId Int         @unique
+  moderators      SuperUser[]
+  villageId       Int
 }

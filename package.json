@@ -18,12 +18,12 @@
     },
     "homepage": "https://github.com/FlorinInfo/FIICODE_backend#readme",
     "dependencies": {
-        "@prisma/client": "^3.10.0",
+        "@prisma/client": "^3.11.0",
         "argon2": "^0.28.5",
         "express": "^4.17.3"
     },
     "devDependencies": {
         "nodemon": "^2.0.15",
-        "prisma": "^3.10.0"
+        "prisma": "^3.11.0"
     }
 }
