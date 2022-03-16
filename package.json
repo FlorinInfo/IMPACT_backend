@@ -5,7 +5,7 @@
     "description": "Backend for fiicode 2022",
     "main": "app.js",
     "scripts": {
-        "dev": "nodemon app.js"
+        "dev": "nodemon src/app.js"
     },
     "repository": {
         "type": "git",

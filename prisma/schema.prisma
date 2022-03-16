@@ -10,39 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model SuperUser {
-  id          Int       @id @default(autoincrement())
-  lastName    String
-  firstName   String
-  password    String
-  address     String
-  email       String    @unique
-  phoneNumber String?
-  admin       Boolean   @default(false)
-  zoneRole    ZoneRole
-  zoneType    ZoneType
-  village     Village?  @relation("VillageSuperUser")
-  villageId   Int?
-  county      County?   @relation("CountySuperUser")
-  countyId    Int?
-  locality    Locality? @relation("LocalitySuperUser")
-  localityId  Int?
-  County      County?   @relation(fields: [countyId], references: [id])
-  Village     Village?  @relation(fields: [villageId], references: [id])
-  Locality    Locality? @relation(fields: [localityId], references: [id])
-}
-
-enum ZoneRole {
-  ADMINISTRATOR
-  MODERATOR
-}
-
-enum ZoneType {
-  VILLAGE
-  LOCALITY
-  COUNTY
-}
-
 model User {
   id               Int             @id @default(autoincrement())
   lastName         String
@@ -59,8 +26,32 @@ model User {
   favoriteArticles Article[]       @relation("_FavoriteUserArticle")
   upvotedPosts     Article[]       @relation("_UpvotedUserArticle")
   downvotedPosts   Article[]       @relation("_DownvotedUserArticle")
-  Log              Log[]
-  Comment          Comment[]
+  logs             Log[]
+  comments         Comment[]
+  county           County?         @relation("administratorCounty")
+  countyId         Int?
+  village          Village?        @relation("administratorVillage")
+  villageId        Int?
+  locality         Locality?       @relation("administratorLocality")
+  localityId       Int?
+  zoneRole         ZoneRole @default(CETATEAN)
+  zoneRoleOn       ZoneType @default(LOCALITY)
+  admin            Boolean @default(false)
+  County           County?         @relation(fields: [countyId], references: [id])
+  Village          Village?        @relation(fields: [villageId], references: [id])
+  Locality         Locality?       @relation(fields: [localityId], references: [id])
+}
+
+enum ZoneRole {
+  CETATEAN
+  ADMINISTRATOR
+  MODERATOR
+}
+
+enum ZoneType {
+  VILLAGE
+  LOCALITY
+  COUNTY
 }
 
 enum UserStatus {
@@ -133,30 +124,30 @@ model Comment {
 }
 
 model County {
-  id              Int         @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   name            String
-  administrator   SuperUser   @relation("CountySuperUser", fields: [administratorId], references: [id])
-  administratorId Int         @unique
-  moderators      SuperUser[]
+  administrator   User?     @relation("administratorCounty", fields: [administratorId], references: [id])
+  administratorId Int?      @unique
+  moderators      User[]
   Village         Village[]
 }
 
 model Village {
-  id              Int         @id @default(autoincrement())
-  county          County      @relation(fields: [countyId], references: [id])
+  id              Int        @id @default(autoincrement())
+  county          County     @relation(fields: [countyId], references: [id])
   name            String
-  administrator   SuperUser   @relation("VillageSuperUser", fields: [administratorId], references: [id])
-  administratorId Int         @unique
-  moderators      SuperUser[]
+  administrator   User?      @relation("administratorVillage", fields: [administratorId], references: [id])
+  administratorId Int?       @unique
+  moderators      User[]
   countyId        Int
   Locality        Locality[]
 }
 
 model Locality {
-  id              Int         @id @default(autoincrement())
-  village         Village     @relation(fields: [villageId], references: [id])
-  administrator   SuperUser   @relation("LocalitySuperUser", fields: [administratorId], references: [id])
-  administratorId Int         @unique
-  moderators      SuperUser[]
+  id              Int     @id @default(autoincrement())
+  village         Village @relation(fields: [villageId], references: [id])
+  administrator   User?   @relation("administratorLocality", fields: [administratorId], references: [id])
+  administratorId Int?    @unique
+  moderators      User[]
   villageId       Int
 }
