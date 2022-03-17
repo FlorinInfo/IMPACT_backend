@@ -20,6 +20,7 @@ model User {
   points           Int             @default(0)
   phoneNumber      String?
   accountRequest   AccountRequest?
+  photoUrl String
   createTime       DateTime        @default(now())
   status           UserStatus      @default(IN_ASTEPTARE)
   ownedArticles    Article[]       @relation("OwnedArticles")

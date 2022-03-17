@@ -1,10 +1,10 @@
-import {
+const {
     EmailInvalidError,
     ValidationError,
-    PasswordInvalidError,
-} from "../utils/errors.js";
+    PasswordInvalidError
+} = require('../utils/errors.js');
 
-export function validateUserData({
+function validateUserData({
     lastName,
     firstName,
     password,
@@ -35,4 +35,8 @@ function validatePassword(password) {
     if (!password.match(passwordFormat)) {
         throw new PasswordInvalidError();
     }
+}
+
+module.exports = {
+    validateUserData
 }

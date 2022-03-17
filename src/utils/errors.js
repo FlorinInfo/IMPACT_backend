@@ -1,4 +1,4 @@
-export class ValidationError extends Error {
+class ValidationError extends Error {
     constructor(message) {
         super(message ? message : "Invalid body");
         this.name = "ValidationError";
@@ -7,7 +7,7 @@ export class ValidationError extends Error {
     }
 }
 
-export class EmailInvalidError extends ValidationError {
+class EmailInvalidError extends ValidationError {
     constructor() {
         super("Invalid email");
         this.name = "EmailInvalidError";
@@ -15,11 +15,27 @@ export class EmailInvalidError extends ValidationError {
     }
 }
 
-export class PasswordInvalidError extends ValidationError {
+class PasswordInvalidError extends ValidationError {
     constructor() {
         super("Invalid password");
         this.name = "PasswordInvalidError";
         this.description =
             "The password provided is invalid. The password must contain at least 6 characters.";
     }
+}
+
+class PhotoInvalidError extends Error {
+    constructor() {
+        super("Invalid photo");
+        this.name = "PhotoInvalidError";
+        this.description = "The photo provided is missing or is invalid.";
+        this.statusCode = 400;
+    }
+}
+
+module.exports = {
+    ValidationError,
+    EmailInvalidError,
+    PasswordInvalidError,
+    PhotoInvalidError
 }

@@ -1,11 +1,18 @@
-import { validateUserData } from '../validators/user.js';
+const {
+    validateUserData
+} = require('../validators/user.js');
 
-export function createUser(req, res) {
+function createUser(req, res) {
     console.log(req.body);
     validateUserData(req.body);
     res.sendStatus(200);
 }
 
-export function getUsers(req, res) {
+function getUsers(req, res) {
     res.sendStatus(200);
+}
+
+module.exports = {
+    createUser,
+    getUsers
 }
