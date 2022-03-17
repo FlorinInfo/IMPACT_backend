@@ -1,6 +1,8 @@
+import { validateUserData } from '../validators/user.js';
+
 export function createUser(req, res) {
     console.log(req.body);
-
+    validateUserData(req.body);
     res.sendStatus(200);
 }
 
