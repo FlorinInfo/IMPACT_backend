@@ -1,4 +1,4 @@
-const { PhotoInvaildError } = require("../utils/errors.js");
+const { PhotoInvalidError } = require("../utils/errors.js");
 
 function uploadImage(req, res) {
     if (!req.file) {
