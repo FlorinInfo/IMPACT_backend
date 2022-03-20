@@ -4,9 +4,9 @@ function uploadImage(req, res) {
     if (!req.file) {
         throw new PhotoInvalidError();
     } else {
-        const fileUrl = req.protocol + "://" + req.host + "/" + req.file.path;
+        const photoUrl = req.protocol + "://" + req.hostname + "/" + req.file.path;
         res.status(200).json({
-            photoUrl: fileUrl,
+            photoUrl: photoUrl,
         });
     }
 }

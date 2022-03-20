@@ -8,10 +8,9 @@ function errorHandler(err, req, res, next) {
             description: err.description,
         });
     } else {
-        //res.status(500).json({
-        //   description: "Server error",
-        //});
-        next(err);
+        res.status(500).json({
+           description: "Server error",
+        });
     }
 }
 
