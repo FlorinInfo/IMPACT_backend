@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  web:
+    image: alexfrunza/fiicode_backend_web
+    build: .
+    command: npm run dev 
+    volumes:
+      - path-images:/app/images
+    ports:
+      - "80:3000"
