@@ -1,10 +1,35 @@
 version: "3.9"
 services:
   web:
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+    networks:
+      - mynet
     image: alexfrunza/fiicode_backend_web
     build: .
-    command: npm run dev 
+    command: >
+      sh -c "npx prisma migrate dev && 
+            npm run ${ENV}"
     volumes:
-      - path-images:/app/images
+      - ${LOCAL_IMAGES_FOLDER}:/app/images
     ports:
-      - "80:3000"
+      - 80:3000
+
+  db:
+    image: postgres
+    container_name: postgres-db
+    hostname: postgres
+    networks:
+      - mynet
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+networks:
+  mynet:
+    driver: bridge

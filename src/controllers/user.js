@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const { ValidationError } = require("../utils/errors.js");
 
 async function createUser(req, res) {
+    console.log('foo');
     try {
         validateUserData(req.body);
         const { password, address, lastName, firstName, photoUrl, email } =
@@ -29,6 +30,7 @@ async function createUser(req, res) {
                 description: err.description,
             });
         } else {
+            console.error(err)
             res.status(500).json({
                 description: "Server Error",
             });
