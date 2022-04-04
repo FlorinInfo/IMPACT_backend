@@ -26,6 +26,9 @@ app.use("/users", users);
 const media = require('./routes/media.js');
 app.use("/", media);
 
+const { login } = require('./controllers/user.js');
+app.post('/login', login);
+
 app.get("/status", (req, res) => {
     res.sendStatus(200);
 });

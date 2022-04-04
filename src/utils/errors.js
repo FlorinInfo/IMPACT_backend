@@ -33,9 +33,27 @@ class PhotoInvalidError extends Error {
     }
 }
 
+class InvalidJWT extends Error {
+    constructor({description}) {
+        this.name = "InvalidJWT";
+        this.description = description;
+        this.StatusCode = 400;
+    }
+}
+
+class InvalidUser extends Error {
+    constructor() {
+        this.name = "InvalidUser";
+        this.description = "The email or the password provided is invalid.";
+        this.StatusCode = 400;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
     PasswordInvalidError,
-    PhotoInvalidError
+    PhotoInvalidError,
+    InvalidJWT,
+    InvalidUser,
 }

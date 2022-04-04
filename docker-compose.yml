@@ -3,6 +3,7 @@ services:
   web:
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - SECRET_JWT=${SECRET_JWT}
     depends_on:
       - db
     networks:
@@ -19,7 +20,6 @@ services:
 
   db:
     image: postgres
-    container_name: postgres-db
     hostname: postgres
     networks:
       - mynet
@@ -29,6 +29,8 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    ports:
+      - ${DB_PORT}:5432
 
 networks:
   mynet:
