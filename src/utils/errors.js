@@ -34,18 +34,29 @@ class PhotoInvalidError extends Error {
 }
 
 class InvalidJWT extends Error {
-    constructor({description}) {
+    constructor({ description }) {
+        super("InvalidJWT");
         this.name = "InvalidJWT";
         this.description = description;
-        this.StatusCode = 400;
+        this.statusCode = 400;
     }
 }
 
 class InvalidUser extends Error {
     constructor() {
+        super("InvalidUser");
         this.name = "InvalidUser";
         this.description = "The email or the password provided is invalid.";
-        this.StatusCode = 400;
+        this.statusCode = 400;
+    }
+}
+
+class CustomHTTPError extends Error {
+    constructor({ name, description, statusCode }) {
+        super(name);
+        this.name = name;
+        this.description = description;
+        this.statusCode = statusCode;
     }
 }
 
@@ -56,4 +67,5 @@ module.exports = {
     PhotoInvalidError,
     InvalidJWT,
     InvalidUser,
-}
+    CustomHTTPError,
+};

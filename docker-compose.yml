@@ -11,7 +11,7 @@ services:
     image: alexfrunza/fiicode_backend_web
     build: .
     command: >
-      sh -c "npx prisma migrate dev && 
+      sh -c "npx prisma migrate deploy && 
             npm run ${ENV}"
     volumes:
       - ${LOCAL_IMAGES_FOLDER}:/app/images

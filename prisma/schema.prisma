@@ -142,6 +142,7 @@ model Village {
   moderators      User[]
   countyId        Int
   Locality        Locality[]
+  city            Boolean @default(false)
 }
 
 model Locality {
