@@ -1,16 +1,10 @@
 const {
     EmailInvalidError,
     ValidationError,
-    PasswordInvalidError
-} = require('../utils/errors.js');
+    PasswordInvalidError,
+} = require("../utils/errors.js");
 
-function validateUserData({
-    lastName,
-    firstName,
-    password,
-    address,
-    email,
-}) {
+function validateUserData({ lastName, firstName, password, address, email }) {
     if (
         lastName === undefined ||
         firstName === undefined ||
@@ -18,6 +12,11 @@ function validateUserData({
     ) {
         throw new ValidationError();
     }
+    validateEmail(email);
+    validatePassword(password);
+}
+
+function validateUserDataLogin({ email, password }) {
     validateEmail(email);
     validatePassword(password);
 }
@@ -38,5 +37,6 @@ function validatePassword(password) {
 }
 
 module.exports = {
-    validateUserData
-}
+    validateUserData,
+    validateUserDataLogin,
+};
