@@ -1,21 +1,15 @@
-const {
-    ValidationError
-} = require('../utils/errors.js');
+const { ServerError } = require("../errors/server.js");
 
 function errorHandler(err, req, res, next) {
-    if (err.statusCode) {
-        res.status(err.statusCode).json({
-            description: err.description,
-            error: true
-        });
-    } else {
-        res.status(500).json({
-           description: "Server error",
-            error: true
-        });
-    }
+    if (!Array.isArray(err)) err = [new ServerError()];
+    const errors = {};
+    err.forEach((e) => {
+        errors[e.title] = e;
+    });
+
+    res.status(200).json({ errors: errors });
 }
 
 module.exports = {
-    errorHandler
-}
+    errorHandler,
+};

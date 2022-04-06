@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const jwtSecret = process.env.SECRET_JWT;
-const { InvalidJWT } = require("./errors.js");
+const { InvalidJWT } = require("../errors/jwt.js");
 
 function generateToken(userId) {
     return jwt.sign(
@@ -14,18 +14,21 @@ function generateToken(userId) {
 
 function decodeToken(token) {
     try {
-        return (decoded = jwt.verify(token, jwtSecret));
+        return jwt.verify(token, jwtSecret);
     } catch (err) {
-        if (
-            [
-                "JsonWebTokenError",
-                "NotBeforeError",
-                "TokenExpirationError",
-            ].includes(err.name)
-        ) {
-            throw new InvalidJWT({ description: err.name });
-        } else {
-            throw new Error();
+        switch (err.name) {
+            case "JsonWebTokenError":
+                return [null, new InvalidJWT({
+                    details: "Tokenul nu este corect.",
+                })]
+            case "NotBeforeError":
+                return [null, new InvalidJWT({
+                    details: "Tokenul nu este inca valabil.",
+                })]
+            case "TokenExpirationError":
+                return [null, new InvalidJWT({
+                    details: "Tokenul este expirat.",
+                })]
         }
     }
 }

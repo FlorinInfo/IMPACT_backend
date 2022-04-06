@@ -17,6 +17,6 @@ const upload = multer({ storage });
 
 const { uploadImage } = require("../controllers/media.js");
 
-router.post("/upload-image", upload.single("image"), uploadImage);
+router.post("/upload-document", upload.single("image"), uploadImage);
 
 module.exports = router;

@@ -2,38 +2,66 @@ const {
     EmailInvalidError,
     ValidationError,
     PasswordInvalidError,
-} = require("../utils/errors.js");
+    PhotoInvalidError,
+    AddressInvalidError,
+    LastNameInvalidError,
+    FirstNameInvalidError,
+} = require("../errors/user.js");
 
-function validateUserData({ lastName, firstName, password, address, email }) {
-    if (
-        lastName === undefined ||
-        firstName === undefined ||
-        address === undefined
-    ) {
-        throw new ValidationError();
-    }
-    validateEmail(email);
-    validatePassword(password);
+function validateUserData({
+    lastName,
+    firstName,
+    password,
+    address,
+    email,
+    photoUrl,
+}) {
+    const errors = [];
+    let err;
+
+    if (!lastName.trim()) errors.push(new LastNameInvalidError());
+    if (!firstName.trim()) errors.push(new FirstNameInvalidError());
+    if (!address.trim()) errors.push(new AddressInvalidError());
+
+    err = validatePhotoUrl(photoUrl);
+    if (err) errors.push(err);
+
+    err = validateEmail(email);
+    if (err) errors.push(err);
+
+    err = validatePassword(password);
+    if (err) errors.push(err);
+
+    return errors;
 }
 
 function validateUserDataLogin({ email, password }) {
-    validateEmail(email);
-    validatePassword(password);
+    const errors = [];
+    let err;
+
+    err = validateEmail(email);
+    if (err) errors.push(err);
+
+    return errors;
 }
 
 function validateEmail(email) {
     let mailFormat =
         /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
     if (!email.match(mailFormat)) {
-        throw new EmailInvalidError();
+        return new EmailInvalidError();
     }
 }
 
 function validatePassword(password) {
     let passwordFormat = /^(?=.{6,})/;
     if (!password.match(passwordFormat)) {
-        throw new PasswordInvalidError();
+        return new PasswordInvalidError();
     }
+}
+
+function validatePhotoUrl(photoUrl) {
+    if (!photoUrl.trim()) return new PhotoInvalidError();
 }
 
 module.exports = {
