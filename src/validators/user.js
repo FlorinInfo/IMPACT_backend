@@ -19,9 +19,9 @@ function validateUserData({
     const errors = [];
     let err;
 
-    if (!lastName.trim()) errors.push(new LastNameInvalidError());
-    if (!firstName.trim()) errors.push(new FirstNameInvalidError());
-    if (!address.trim()) errors.push(new AddressInvalidError());
+    if (!lastName || !lastName.trim()) errors.push(new LastNameInvalidError());
+    if (!firstName || !firstName.trim()) errors.push(new FirstNameInvalidError());
+    if (!address || !address.trim()) errors.push(new AddressInvalidError());
 
     err = validatePhotoUrl(photoUrl);
     if (err) errors.push(err);
@@ -61,7 +61,7 @@ function validatePassword(password) {
 }
 
 function validatePhotoUrl(photoUrl) {
-    if (!photoUrl.trim()) return new PhotoInvalidError();
+    if (!photoUrl || !photoUrl.trim()) return new PhotoInvalidError();
 }
 
 module.exports = {

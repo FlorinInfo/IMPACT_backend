@@ -26,6 +26,15 @@ app.use("/users", users);
 const media = require('./routes/media.js');
 app.use("/", media);
 
+// const localities = require('./routes/locality.js');
+// app.use("/localities", localities);
+
+// const villages = require('./routes/village.js');
+// app.use("/villages", villages);
+
+const counties = require('./routes/county.js');
+app.use("/counties", counties);
+
 const { login } = require('./controllers/user.js');
 app.post('/login', login);
 
