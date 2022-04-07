@@ -1,48 +1,51 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
 
-const prismaClient = require('@prisma/client');
+const prismaClient = require("@prisma/client");
 const { PrismaClient } = prismaClient;
 const prisma = new PrismaClient();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const morgan = require('morgan');
+const morgan = require("morgan");
 app.use(morgan("dev"));
 
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
 });
 
 app.use("/images", express.static("./images"));
 
-const users = require('./routes/user.js');
+const users = require("./routes/user.js");
 app.use("/users", users);
 
-const media = require('./routes/media.js');
+const media = require("./routes/media.js");
 app.use("/", media);
 
 // const localities = require('./routes/locality.js');
 // app.use("/localities", localities);
 
-// const villages = require('./routes/village.js');
-// app.use("/villages", villages);
+const villages = require("./routes/village.js");
+app.use("/villages", villages);
 
-const counties = require('./routes/county.js');
+const counties = require("./routes/county.js");
 app.use("/counties", counties);
 
-const { login } = require('./controllers/user.js');
-app.post('/login', login);
+const { login } = require("./controllers/user.js");
+app.post("/login", login);
 
 app.get("/status", (req, res) => {
     res.sendStatus(200);
 });
 
-const errorHandler = require('./middlewares/errors.js').errorHandler;
+const errorHandler = require("./middlewares/errors.js").errorHandler;
 app.use(errorHandler);
 
 app.listen(port, () => {
