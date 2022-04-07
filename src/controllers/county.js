@@ -4,15 +4,7 @@ const { validateCountyData } = require("../validators/county.js");
 
 async function getCounties(req, res, next) {
     try {
-        const name = req.query.name || "";
-
         const counties = await prisma.county.findMany({
-            where: {
-                name: {
-                    startsWith: name,
-                    mode: "insensitive",
-                },
-            },
             select: {
                 id: true,
                 name: true,

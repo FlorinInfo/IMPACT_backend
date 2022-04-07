@@ -4,12 +4,11 @@ const {
     validateVillageData,
     validateCountyId,
 } = require("../validators/village.js");
-const { CityInvalidError } = require("../errors/village.js");
+const { CountyInvalidError } = require("../errors/village.js");
 
 async function getVillages(req, res, next) {
     try {
         let err;
-        const name = req.query.name || "";
         const countyId = parseInt(req.query.countyId, 10) || "";
         err = validateCountyId(countyId);
         if (err) {
@@ -22,15 +21,11 @@ async function getVillages(req, res, next) {
             },
         });
         if (!county) {
-            return next([new CityInvalidError()]);
+            return next([new CountyInvalidError()]);
         }
 
         const villages = await prisma.village.findMany({
             where: {
-                name: {
-                    startsWith: name,
-                    mode: "insensitive",
-                },
                 countyId: countyId,
             },
             select: {
