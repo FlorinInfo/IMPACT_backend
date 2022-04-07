@@ -29,8 +29,8 @@ app.use("/users", users);
 const media = require("./routes/media.js");
 app.use("/", media);
 
-// const localities = require('./routes/locality.js');
-// app.use("/localities", localities);
+const localities = require("./routes/locality.js");
+app.use("/localities", localities);
 
 const villages = require("./routes/village.js");
 app.use("/villages", villages);
