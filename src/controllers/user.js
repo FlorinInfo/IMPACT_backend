@@ -9,6 +9,9 @@ const {
     EmailNotExistsError,
     WrongPasswordError,
     EmailAlreadyExistsError,
+    VillageInvalidError,
+    CountyInvalidError,
+    LocalityInvalidError,
 } = require("../errors/user.js");
 const { decodeToken, generateToken } = require("../utils/jwt.js");
 
@@ -52,10 +55,22 @@ async function createUser(req, res, next) {
         let err;
 
         err = validateUserData(req.body); // the result of this function is an array
-        errors.push(...err);
+        if (err.length) {
+            return next(err);
+        }
 
-        const { password, address, lastName, firstName, photoUrl, email } =
-            req.body;
+        const {
+            password,
+            address,
+            lastName,
+            firstName,
+            photoUrl,
+            email,
+            countyId,
+            villageId,
+            localityId,
+        } = req.body;
+
         const userAlreadyExists = await prisma.user.findUnique({
             where: {
                 email: email,
@@ -65,24 +80,58 @@ async function createUser(req, res, next) {
             errors.push(new EmailAlreadyExistsError());
         }
 
+        const county = await prisma.county.findUnique({
+            where: {
+                id: countyId,
+            },
+        });
+        if (!county) {
+            errors.push(new CountyInvalidError());
+        }
+
+        const village = await prisma.village.findUnique({
+            where: {
+                id: villageId,
+            },
+        });
+        if (!village || village.countyId !== county.id) {
+            errors.push(new VillageInvalidError());
+        }
+
+        if (!village.city) {
+            const locality = await prisma.locality.findUnique({
+                where: {
+                    id: localityId,
+                },
+            });
+            if (!locality || locality.villageId !== village.id)
+                errors.push(new LocalityInvalidError());
+        }
+
         if (errors.length) {
             next(errors);
             return;
         }
 
         const passwordHashed = await argon2.hash(password);
+        const data = {
+            password: passwordHashed,
+            address,
+            lastName,
+            firstName,
+            photoUrl,
+            email,
+            countyId,
+            villageId,
+        };
+        if (localityId && !village.city) data["localityId"] = localityId;
+        if (village.city) data["zoneRoleOn"] = "VILLAGE";
+
         const user = await prisma.user.create({
-            data: {
-                password: passwordHashed,
-                address,
-                lastName,
-                firstName,
-                photoUrl,
-                email,
-            },
+            data,
         });
 
-        res.status(200).json({
+        res.status(201).json({
             token: generateToken(user.id),
         });
     } catch (err) {

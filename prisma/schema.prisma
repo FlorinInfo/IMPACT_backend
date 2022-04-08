@@ -148,6 +148,7 @@ model Village {
 model Locality {
   id              Int     @id @default(autoincrement())
   village         Village @relation(fields: [villageId], references: [id])
+  name String
   administrator   User?   @relation("administratorLocality", fields: [administratorId], references: [id])
   administratorId Int?    @unique
   moderators      User[]
