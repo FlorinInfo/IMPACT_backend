@@ -5,7 +5,7 @@ function uploadImage(req, res, next) {
         next([new PhotoInvalidError()]);
     } else {
         const photoUrl = req.protocol + "://" + req.hostname + "/" + req.file.path;
-        res.status(200).json({
+        res.status(201).json({
             photoUrl: photoUrl,
         });
     }

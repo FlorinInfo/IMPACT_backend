@@ -82,7 +82,7 @@ async function createUser(req, res, next) {
             },
         });
 
-        res.status(200).json({
+        res.status(201).json({
             token: generateToken(user.id),
         });
     } catch (err) {
