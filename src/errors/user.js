@@ -55,6 +55,33 @@ class PasswordInvalidError extends ValidationError {
     }
 }
 
+class CountyInvalidError extends ValidationError {
+    constructor() {
+        super("CountyInvalidError");
+        this.type = "CountyInvalidError";
+        this.title = "county";
+        this.details = "Judetul introdus nu exista sau este invalid.";
+    }
+}
+
+class VillageInvalidError extends ValidationError {
+    constructor() {
+        super("VillageInvalidError");
+        this.type = "VillageInvalidError";
+        this.title = "village";
+        this.details = "Comuna/Orasul introdus nu exista sau este invalid.";
+    }
+}
+
+class LocalityInvalidError extends ValidationError {
+    constructor() {
+        super("LocalityInvalidError");
+        this.type = "LocalityInvalidError";
+        this.title = "locality";
+        this.details = "Localitatea introdusa nu exista sau este invalida.";
+    }
+}
+
 class PhotoInvalidError extends Error {
     constructor() {
         super("PhotoInvalidError");
@@ -107,4 +134,7 @@ module.exports = {
     AddressInvalidError,
     LastNameInvalidError,
     FirstNameInvalidError,
+    CountyInvalidError,
+    VillageInvalidError,
+    LocalityInvalidError,
 };

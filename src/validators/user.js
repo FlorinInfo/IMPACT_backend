@@ -6,7 +6,11 @@ const {
     AddressInvalidError,
     LastNameInvalidError,
     FirstNameInvalidError,
+    CountyInvalidError,
+    VillageInvalidError,
+    LocalityInvalidError,
 } = require("../errors/user.js");
+const { checkString, checkInt } = require("../utils/validators.js");
 
 function validateUserData({
     lastName,
@@ -15,13 +19,20 @@ function validateUserData({
     address,
     email,
     photoUrl,
+    countyId,
+    villageId,
+    localityId,
 }) {
     const errors = [];
     let err;
 
-    if (!lastName || !lastName.trim()) errors.push(new LastNameInvalidError());
-    if (!firstName || !firstName.trim()) errors.push(new FirstNameInvalidError());
-    if (!address || !address.trim()) errors.push(new AddressInvalidError());
+    if (!checkString(lastName)) errors.push(new LastNameInvalidError());
+    if (!checkString(firstName)) errors.push(new FirstNameInvalidError());
+    if (!checkString(address)) errors.push(new AddressInvalidError());
+    if (!checkInt(countyId)) errors.push(new CountyInvalidError());
+    if (!checkInt(villageId)) errors.push(new VillageInvalidError());
+    if (localityId !== undefined && !checkInt(localityId))
+        errors.push(new LocalityInvalidError());
 
     err = validatePhotoUrl(photoUrl);
     if (err) errors.push(err);
@@ -48,14 +59,14 @@ function validateUserDataLogin({ email, password }) {
 function validateEmail(email) {
     let mailFormat =
         /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-    if (!email.match(mailFormat)) {
+    if (!checkString(email) || !email.match(mailFormat)) {
         return new EmailInvalidError();
     }
 }
 
 function validatePassword(password) {
     let passwordFormat = /^(?=.{6,})/;
-    if (!password.match(passwordFormat)) {
+    if (!checkString(password) || !password.match(passwordFormat)) {
         return new PasswordInvalidError();
     }
 }
