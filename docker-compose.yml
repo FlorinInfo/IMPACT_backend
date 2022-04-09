@@ -4,6 +4,9 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL_PROD}
       - SECRET_JWT=${SECRET_JWT}
+      - API_KEY_MAILGUN=${API_KEY_MAILGUN} 
+      - DOMAIN_MAILGUN=${DOMAIN_MAILGUN}
+      - SENDER_MAILGUN=${SENDER_MAILGUN}
     depends_on:
       - db
     networks:
