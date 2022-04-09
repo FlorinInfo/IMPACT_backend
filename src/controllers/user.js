@@ -140,14 +140,16 @@ async function createUser(req, res, next) {
 }
 
 function getUsers(req, res) {
-    const cookies = getCookies(req);
-    const tokenDecoded = decodeToken(cookies["token"]);
+    res.send("In lucru...");
+}
 
-    res.status(200).json(tokenDecoded);
+function modifyUser(req, res) {
+    res.send("nimic de vazut");
 }
 
 module.exports = {
     createUser,
     getUsers,
     login,
+    modifyUser,
 };

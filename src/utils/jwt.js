@@ -14,21 +14,30 @@ function generateToken(userId) {
 
 function decodeToken(token) {
     try {
-        return jwt.verify(token, jwtSecret);
+        return [jwt.verify(token, jwtSecret), null];
     } catch (err) {
         switch (err.name) {
             case "JsonWebTokenError":
-                return [null, new InvalidJWT({
-                    details: "Tokenul nu este corect.",
-                })]
+                return [
+                    null,
+                    new InvalidJWT({
+                        details: "Tokenul nu este corect.",
+                    }),
+                ];
             case "NotBeforeError":
-                return [null, new InvalidJWT({
-                    details: "Tokenul nu este inca valabil.",
-                })]
+                return [
+                    null,
+                    new InvalidJWT({
+                        details: "Tokenul nu este inca valabil.",
+                    }),
+                ];
             case "TokenExpirationError":
-                return [null, new InvalidJWT({
-                    details: "Tokenul este expirat.",
-                })]
+                return [
+                    null,
+                    new InvalidJWT({
+                        details: "Tokenul este expirat.",
+                    }),
+                ];
         }
     }
 }
