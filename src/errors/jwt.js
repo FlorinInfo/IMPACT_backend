@@ -2,9 +2,9 @@ class InvalidJWT extends Error {
     constructor({ details }) {
         super("InvalidJWT");
         this.type = "InvalidJWT";
-        this.title = "invalidJWT";
+        this.title = "permission";
         this.details = details;
-        this.statusCode = 400;
+        this.statusCode = 401;
     }
 }
 

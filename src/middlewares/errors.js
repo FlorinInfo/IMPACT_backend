@@ -7,6 +7,7 @@ function errorHandler(err, req, res, next) {
     err.forEach((e) => {
         errors[e.title] = e;
     });
+    console.log(errors);
     res.status(200).json({ errors: errors });
 }
 
