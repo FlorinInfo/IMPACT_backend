@@ -59,7 +59,6 @@ async function createUser(req, res, next) {
 
         const {
             password,
-            address,
             lastName,
             firstName,
             photoUrl,
@@ -117,7 +116,7 @@ async function createUser(req, res, next) {
         const passwordHashed = await argon2.hash(password);
         const data = {
             password: passwordHashed,
-            address,
+            address: "",
             lastName,
             firstName,
             photoUrl,
