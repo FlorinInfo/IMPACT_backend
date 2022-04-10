@@ -2,7 +2,10 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const { InvalidJWT } = require("../errors/jwt.js");
-const { InvalidUser } = require("../errors/permissions.js");
+const {
+    InvalidUserError,
+    InsufficientPermissionsError,
+} = require("../errors/permissions.js");
 const { decodeToken } = require("../utils/jwt.js");
 
 async function identifyUser(req, res, next) {
@@ -24,6 +27,7 @@ async function identifyUser(req, res, next) {
             ]);
         }
 
+        console.log(decodeToken(token));
         let [tokenBody, err] = decodeToken(token);
         if (err) return next([err]);
 
@@ -34,7 +38,7 @@ async function identifyUser(req, res, next) {
             },
         });
         if (!currentUser) {
-            return next([new InvalidUser()]);
+            return next([new InvalidUserError()]);
         }
 
         req.currentUser = currentUser;
@@ -44,6 +48,16 @@ async function identifyUser(req, res, next) {
     }
 }
 
+function isAdmin(req, res, next) {
+    const currentUser = req.currentUser;
+    if (currentUser.admin) {
+        return next();
+    } else {
+        return next([new InsufficientPermissionsError()]);
+    }
+}
+
 module.exports = {
     identifyUser,
+    isAdmin,
 };

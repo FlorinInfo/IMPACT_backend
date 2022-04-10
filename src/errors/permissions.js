@@ -1,13 +1,24 @@
-class InvalidUser extends Error {
+class InvalidUserError extends Error {
     constructor() {
-        super("InvalidUser");
-        this.type = "InvalidUser";
+        super("InvalidUserError");
+        this.type = "InvalidUserError";
         this.title = "permission";
         this.details = "The user doesn't exists.";
         this.statusCode = 401;
     }
 }
 
+class InsufficientPermissionsError extends Error {
+    constructor() {
+        super("InsufficentPermissionsError");
+        this.type = "InsuffiecentPermissionsError";
+        this.title = "permission";
+        this.details = "insufficient permissions";
+        this.statusCode = 401;
+    }
+}
+
 module.exports = {
-    InvalidUser,
+    InvalidUserError,
+    InsufficientPermissionsError,
 };
