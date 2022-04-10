@@ -38,9 +38,9 @@ async function identifyUser(req, res, next) {
         }
 
         req.currentUser = currentUser;
-        next();
+        return next();
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 

@@ -22,8 +22,7 @@ async function login(req, res, next) {
 
         err = validateUserDataLogin(req.body); // the result of this function is an array
         if (err.length) {
-            next(err);
-            return;
+            return next(err);
         }
 
         const { password, email } = req.body;
@@ -33,8 +32,7 @@ async function login(req, res, next) {
             },
         });
         if (!user) {
-            next([new EmailNotExistsError()]);
-            return;
+            return next([new EmailNotExistsError()]);
         }
 
         if (await argon2.verify(user.password, password)) {
@@ -42,11 +40,10 @@ async function login(req, res, next) {
                 token: generateToken(user.id),
             });
         } else {
-            next([new WrongPasswordError()]);
-            return;
+            return next([new WrongPasswordError()]);
         }
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 
@@ -114,8 +111,7 @@ async function createUser(req, res, next) {
         }
 
         if (errors.length) {
-            next(errors);
-            return;
+            return next(errors);
         }
 
         const passwordHashed = await argon2.hash(password);
@@ -140,7 +136,7 @@ async function createUser(req, res, next) {
             token: generateToken(user.id),
         });
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 

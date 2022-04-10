@@ -13,7 +13,7 @@ async function getCounties(req, res, next) {
 
         res.status(200).json(counties);
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 
@@ -21,8 +21,7 @@ async function createCounty(req, res, next) {
     try {
         err = validateCountyData(req.body); // the result of this function is an array
         if (err.length) {
-            next(err);
-            return;
+            return next(err);
         }
 
         const { name } = req.body;
@@ -34,7 +33,7 @@ async function createCounty(req, res, next) {
 
         res.sendStatus(201);
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 
