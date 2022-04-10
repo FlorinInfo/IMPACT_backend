@@ -14,6 +14,7 @@ const {
     LocalityInvalidError,
 } = require("../errors/user.js");
 const { decodeToken, generateToken } = require("../utils/jwt.js");
+const { checkInt } = require("../utils/validators.js");
 
 async function login(req, res, next) {
     try {
@@ -99,13 +100,17 @@ async function createUser(req, res, next) {
         }
 
         if (!village.city) {
-            const locality = await prisma.locality.findUnique({
-                where: {
-                    id: localityId,
-                },
-            });
-            if (!locality || locality.villageId !== village.id)
+            if (!checkInt(localityId)) {
                 errors.push(new LocalityInvalidError());
+            } else {
+                const locality = await prisma.locality.findUnique({
+                    where: {
+                        id: localityId,
+                    },
+                });
+                if (!locality || locality.villageId !== village.id)
+                    errors.push(new LocalityInvalidError());
+            }
         }
 
         if (errors.length) {
