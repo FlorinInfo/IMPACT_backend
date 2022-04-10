@@ -16,7 +16,6 @@ function validateUserData({
     lastName,
     firstName,
     password,
-    address,
     email,
     photoUrl,
     countyId,
@@ -28,7 +27,6 @@ function validateUserData({
 
     if (!checkString(lastName)) errors.push(new LastNameInvalidError());
     if (!checkString(firstName)) errors.push(new FirstNameInvalidError());
-    if (!checkString(address)) errors.push(new AddressInvalidError());
     if (!checkInt(countyId)) errors.push(new CountyInvalidError());
     if (!checkInt(villageId)) errors.push(new VillageInvalidError());
     if (localityId !== undefined && !checkInt(localityId))
