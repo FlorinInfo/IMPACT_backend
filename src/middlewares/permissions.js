@@ -27,7 +27,6 @@ async function identifyUser(req, res, next) {
             ]);
         }
 
-        console.log(decodeToken(token));
         let [tokenBody, err] = decodeToken(token);
         if (err) return next([err]);
 

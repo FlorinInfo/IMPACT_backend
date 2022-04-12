@@ -1,10 +1,12 @@
+const argon2 = require("argon2");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 const {
     validateUserData,
     validateUserDataLogin,
 } = require("../validators/user.js");
-const argon2 = require("argon2");
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+
 const {
     EmailNotExistsError,
     WrongPasswordError,
@@ -13,8 +15,12 @@ const {
     CountyInvalidError,
     LocalityInvalidError,
 } = require("../errors/user.js");
+const { InsufficientPermissionsError } = require("../errors/permissions.js");
+const { InvalidIntegerError } = require("../errors/general.js");
+
 const { decodeToken, generateToken } = require("../utils/jwt.js");
 const { checkInt } = require("../utils/validators.js");
+const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 
 async function login(req, res, next) {
     try {
@@ -139,11 +145,140 @@ async function createUser(req, res, next) {
     }
 }
 
-function getUsers(req, res) {
-    res.send("In lucru...");
+async function getUsers(req, res, next) {
+    try {
+        let errors = [];
+        let name1, name2;
+
+        const currentUser = req.currentUser;
+        let { offset, limit } = req.query;
+        let { countyId, villageId, localityId } = req.query;
+
+        let { search } = req.query;
+
+        if (search) {
+            if (search.indexOf(" ") === -1) {
+                name1 = search;
+                name2 = "";
+            } else {
+                [name1, name2] = [
+                    search.substring(0, search.indexOf(" ")),
+                    search.substring(search.indexOf(" ") + 1),
+                ];
+            }
+        } else search = "";
+
+        [offset, limit, countyId, villageId, localityId] = [
+            { value: offset, title: "offset", details: "Offset-ul" },
+            { value: limit, title: "limit", details: "Limita" },
+            { value: countyId, title: "countyId", details: "Id-ul judetului" },
+            {
+                value: villageId,
+                title: "villageId",
+                details: "Id-ul comunei/orasului",
+            },
+            {
+                value: localityId,
+                title: "localityId",
+                details: "Id-ul localitatii",
+            },
+        ].map(({ value, title, details }) => {
+            let v;
+            if (value) {
+                // Try to parse value to integer
+                v = parseInt(value, 10);
+                if (!checkInt(v)) {
+                    errors.push(new InvalidIntegerError({ title, details }));
+                }
+            }
+            return v;
+        });
+        if (errors.length) return next(errors);
+
+        if (!currentUser.admin) {
+            if (
+                currentUser.zoneRole !== "MODERATOR" &&
+                currentUser.zoneRole !== "ADMINISTRATOR"
+            )
+                return next([new InsufficientPermissionsError()]);
+
+            let err = checkPermissionsHierarchically(
+                currentUser,
+                countyId,
+                villageId,
+                localityId
+            );
+            if (err) return next([err]);
+        }
+
+        const users = await prisma.user.findMany({
+            skip: offset,
+            take: limit,
+            where: {
+                countyId: countyId,
+                villageId: villageId,
+                localityId: localityId,
+                OR: [
+                    {
+                        email: {
+                            startsWith: search,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        firstName: {
+                            startsWith: name1,
+                            mode: "insensitive",
+                        },
+                        lastName: {
+                            startsWith: name2,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        lastName: {
+                            startsWith: name1,
+                            mode: "insensitive",
+                        },
+                        firstName: {
+                            startsWith: name2,
+                            mode: "insensitive",
+                        },
+                    },
+                ],
+            },
+            select: {
+                id: true,
+                lastName: true,
+                firstName: true,
+                email: true,
+                photoUrl: true,
+                createTime: true,
+                Locality: {
+                    select: {
+                        name: true,
+                    },
+                },
+                Village: {
+                    select: {
+                        name: true,
+                    },
+                },
+                County: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
+
+        res.status(200).json(users);
+    } catch (err) {
+        return next([err]);
+    }
 }
 
-function modifyUser(req, res) {
+async function modifyUser(req, res, next) {
     res.send("nimic de vazut");
 }
 
