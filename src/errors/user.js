@@ -129,7 +129,17 @@ class RoleInvalidError extends Error {
         this.type = "RoleInvalidError";
         this.title = "role";
         this.details = "Acest rol nu exista.";
-        this.statusCode = 409;
+        this.statusCode = 400;
+    }
+}
+
+class StatusInvalidError extends Error {
+    constructor() {
+        super("StatusInvalidError");
+        this.type = "StatusInvalidError";
+        this.title = "status";
+        this.details = "Acest status nu exista.";
+        this.statusCode = 400;
     }
 }
 
@@ -148,4 +158,5 @@ module.exports = {
     VillageInvalidError,
     LocalityInvalidError,
     RoleInvalidError,
+    StatusInvalidError,
 };

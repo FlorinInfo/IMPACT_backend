@@ -6,6 +6,7 @@ const {
     validateUserData,
     validateUserDataLogin,
     validateRole,
+    validateStatus,
 } = require("../validators/user.js");
 
 const {
@@ -158,6 +159,7 @@ async function getUsers(req, res, next) {
 
         let { search } = req.query;
         let { role } = req.query;
+        let { status } = req.query;
 
         if (search) {
             if (search.indexOf(" ") === -1) {
@@ -173,7 +175,19 @@ async function getUsers(req, res, next) {
 
         if (role === "") role = undefined;
         if (role !== undefined) {
+            if (
+                currentUser.zoneRole !== "ADMINISTRATOR" &&
+                !currentUser.admin
+            ) {
+                return next([new InsufficientPermissionsError()]);
+            }
             err = validateRole(role);
+            if (err) errors.push(err);
+        }
+
+        if (status === "") status = undefined;
+        if (status !== undefined) {
+            err = validateStatus(status);
             if (err) errors.push(err);
         }
 
@@ -228,6 +242,7 @@ async function getUsers(req, res, next) {
                 villageId: villageId,
                 localityId: localityId,
                 zoneRole: role,
+                status: status,
                 OR: [
                     {
                         email: {

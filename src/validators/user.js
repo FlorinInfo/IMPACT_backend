@@ -10,6 +10,7 @@ const {
     VillageInvalidError,
     LocalityInvalidError,
     RoleInvalidError,
+    StatusInvalidError,
 } = require("../errors/user.js");
 const { checkString, checkInt } = require("../utils/validators.js");
 
@@ -84,8 +85,19 @@ function validateRole(role) {
     }
 }
 
+function validateStatus(status) {
+    if (
+        status !== "IN_ASTEPTARE" &&
+        status !== "APROBAT" &&
+        status !== "BLOCAT"
+    ) {
+        return new StatusInvalidError();
+    }
+}
+
 module.exports = {
     validateUserData,
     validateUserDataLogin,
     validateRole,
+    validateStatus,
 };
