@@ -9,6 +9,7 @@ const {
     CountyInvalidError,
     VillageInvalidError,
     LocalityInvalidError,
+    RoleInvalidError,
 } = require("../errors/user.js");
 const { checkString, checkInt } = require("../utils/validators.js");
 
@@ -73,7 +74,18 @@ function validatePhotoUrl(photoUrl) {
     if (!photoUrl || !photoUrl.trim()) return new PhotoInvalidError();
 }
 
+function validateRole(role) {
+    if (
+        role !== "CETATEAN" &&
+        role !== "ADMINISTRATOR" &&
+        role !== "MODERATOR"
+    ) {
+        return new RoleInvalidError();
+    }
+}
+
 module.exports = {
     validateUserData,
     validateUserDataLogin,
+    validateRole,
 };

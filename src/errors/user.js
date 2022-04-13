@@ -123,6 +123,16 @@ class EmailAlreadyExistsError extends Error {
     }
 }
 
+class RoleInvalidError extends Error {
+    constructor() {
+        super("RoleInvalidError");
+        this.type = "RoleInvalidError";
+        this.title = "role";
+        this.details = "Acest rol nu exista.";
+        this.statusCode = 409;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
@@ -137,4 +147,5 @@ module.exports = {
     CountyInvalidError,
     VillageInvalidError,
     LocalityInvalidError,
+    RoleInvalidError,
 };

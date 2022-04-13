@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const {
     validateUserData,
     validateUserDataLogin,
+    validateRole,
 } = require("../validators/user.js");
 
 const {
@@ -147,6 +148,7 @@ async function createUser(req, res, next) {
 
 async function getUsers(req, res, next) {
     try {
+        let err;
         let errors = [];
         let name1, name2;
 
@@ -155,6 +157,7 @@ async function getUsers(req, res, next) {
         let { countyId, villageId, localityId } = req.query;
 
         let { search } = req.query;
+        let { role } = req.query;
 
         if (search) {
             if (search.indexOf(" ") === -1) {
@@ -167,6 +170,12 @@ async function getUsers(req, res, next) {
                 ];
             }
         } else search = "";
+
+        if (role === "") role = undefined;
+        if (role !== undefined) {
+            err = validateRole(role);
+            if (err) errors.push(err);
+        }
 
         [offset, limit, countyId, villageId, localityId] = [
             { value: offset, title: "offset", details: "Offset-ul" },
@@ -202,7 +211,7 @@ async function getUsers(req, res, next) {
             )
                 return next([new InsufficientPermissionsError()]);
 
-            let err = checkPermissionsHierarchically(
+            err = checkPermissionsHierarchically(
                 currentUser,
                 countyId,
                 villageId,
@@ -218,6 +227,7 @@ async function getUsers(req, res, next) {
                 countyId: countyId,
                 villageId: villageId,
                 localityId: localityId,
+                zoneRole: role,
                 OR: [
                     {
                         email: {
