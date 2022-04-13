@@ -235,6 +235,9 @@ async function getUsers(req, res, next) {
         }
 
         const users = await prisma.user.findMany({
+            orderBy: {
+                createTime: "desc",
+            },
             skip: offset,
             take: limit,
             where: {
