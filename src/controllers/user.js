@@ -54,6 +54,7 @@ async function login(req, res, next) {
                 villageId: user.villageId,
                 localityId: user.localityId,
                 admin: user.admin,
+                status: user.status,
             });
         } else {
             return next([new WrongPasswordError()]);
@@ -155,6 +156,7 @@ async function createUser(req, res, next) {
             villageId: user.villageId,
             localityId: user.localityId,
             admin: user.admin,
+            status: user.status,
         });
     } catch (err) {
         return next([err]);
@@ -248,6 +250,44 @@ async function getUsers(req, res, next) {
         });
         if (errors.length) return next(errors);
 
+        const usersCount = await prisma.user.count({
+            where: {
+                countyId: countyId,
+                villageId: villageId,
+                localityId: localityId,
+                zoneRole: role,
+                status: status,
+                OR: [
+                    {
+                        email: {
+                            startsWith: search,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        firstName: {
+                            startsWith: name1,
+                            mode: "insensitive",
+                        },
+                        lastName: {
+                            startsWith: name2,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        lastName: {
+                            startsWith: name1,
+                            mode: "insensitive",
+                        },
+                        firstName: {
+                            startsWith: name2,
+                            mode: "insensitive",
+                        },
+                    },
+                ],
+            },
+        });
+
         const users = await prisma.user.findMany({
             orderBy: {
                 createTime: "desc",
@@ -314,7 +354,7 @@ async function getUsers(req, res, next) {
             },
         });
 
-        res.status(200).json(users);
+        res.status(200).json({ users, limit: usersCount });
     } catch (err) {
         return next([err]);
     }
@@ -353,9 +393,8 @@ async function modifyUser(req, res, next) {
             ]);
         }
 
-        if (status !== undefined) {
+        if (status !== undefined && status !== user.status) {
             // TODO: trimite email cu notificare activare cont
-            // TODO: verifica daca contul nu este deja activat
             if (!currentUser.admin) {
                 if (
                     currentUser.zoneRole !== "MODERATOR" &&
