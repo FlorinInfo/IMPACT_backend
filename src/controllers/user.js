@@ -48,6 +48,12 @@ async function login(req, res, next) {
         if (await argon2.verify(user.password, password)) {
             res.status(200).json({
                 token: generateToken(user.id),
+                zoneRole: user.zoneRole,
+                zoneRoleOn: user.zoneRoleOn,
+                countyId: user.countyId,
+                villageId: user.villageId,
+                localityId: user.localityId,
+                admin: user.admin,
             });
         } else {
             return next([new WrongPasswordError()]);
@@ -143,6 +149,12 @@ async function createUser(req, res, next) {
 
         res.status(201).json({
             token: generateToken(user.id),
+            zoneRole: user.zoneRole,
+            zoneRoleOn: user.zoneRoleOn,
+            countyId: user.countyId,
+            villageId: user.villageId,
+            localityId: user.localityId,
+            admin: user.admin,
         });
     } catch (err) {
         return next([err]);
