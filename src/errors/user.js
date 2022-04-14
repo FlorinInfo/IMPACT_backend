@@ -143,6 +143,26 @@ class StatusInvalidError extends Error {
     }
 }
 
+class ZoneInvalidError extends Error {
+    constructor() {
+        super("ZoneInvalidError");
+        this.type = "ZoneInvalidError";
+        this.title = "zone";
+        this.details = "Aceast tip de zona nu exista.";
+        this.statusCode = 400;
+    }
+}
+
+class InvalidUserError extends Error {
+    constructor({ title, statusCode }) {
+        super("InvalidUserError");
+        this.type = "InvalidUserError";
+        this.title = title;
+        this.details = "Utilizatorul nu exista.";
+        this.statusCode = statusCode;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
@@ -159,4 +179,6 @@ module.exports = {
     LocalityInvalidError,
     RoleInvalidError,
     StatusInvalidError,
+    InvalidUserError,
+    ZoneInvalidError,
 };

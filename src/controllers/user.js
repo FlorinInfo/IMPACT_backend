@@ -7,6 +7,7 @@ const {
     validateUserDataLogin,
     validateRole,
     validateStatus,
+    validateZone,
 } = require("../validators/user.js");
 
 const {
@@ -16,6 +17,7 @@ const {
     VillageInvalidError,
     CountyInvalidError,
     LocalityInvalidError,
+    InvalidUserError,
 } = require("../errors/user.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { InvalidIntegerError } = require("../errors/general.js");
@@ -161,6 +163,22 @@ async function getUsers(req, res, next) {
         let { role } = req.query;
         let { status } = req.query;
 
+        if (!currentUser.admin) {
+            if (
+                currentUser.zoneRole !== "MODERATOR" &&
+                currentUser.zoneRole !== "ADMINISTRATOR"
+            )
+                return next([new InsufficientPermissionsError()]);
+
+            err = checkPermissionsHierarchically(
+                currentUser,
+                countyId,
+                villageId,
+                localityId
+            );
+            if (err) return next([err]);
+        }
+
         if (search) {
             if (search.indexOf(" ") === -1) {
                 name1 = search;
@@ -217,22 +235,6 @@ async function getUsers(req, res, next) {
             return v;
         });
         if (errors.length) return next(errors);
-
-        if (!currentUser.admin) {
-            if (
-                currentUser.zoneRole !== "MODERATOR" &&
-                currentUser.zoneRole !== "ADMINISTRATOR"
-            )
-                return next([new InsufficientPermissionsError()]);
-
-            err = checkPermissionsHierarchically(
-                currentUser,
-                countyId,
-                villageId,
-                localityId
-            );
-            if (err) return next([err]);
-        }
 
         const users = await prisma.user.findMany({
             orderBy: {
@@ -307,7 +309,102 @@ async function getUsers(req, res, next) {
 }
 
 async function modifyUser(req, res, next) {
-    res.send("nimic de vazut");
+    // TODO
+    try {
+        let err;
+        const errors = [];
+        const newData = {};
+
+        const currentUser = req.currentUser;
+        let { userId } = req.params;
+
+        let { status, zoneRole, zoneRoleOn } = req.body;
+
+        userId = parseInt(userId, 10);
+        if (!checkInt(userId)) {
+            return next([
+                new InvalidIntegerError({
+                    title: "userId",
+                    details: "Id-ul utilizatorului",
+                }),
+            ]);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+        if (!user) {
+            return next([
+                new InvalidUserError({ title: "user", statusCode: 400 }),
+            ]);
+        }
+
+        if (status !== undefined) {
+            // TODO: trimite email cu notificare activare cont
+            // TODO: verifica daca contul nu este deja activat
+            if (!currentUser.admin) {
+                if (
+                    currentUser.zoneRole !== "MODERATOR" &&
+                    currentUser.zoneRole !== "ADMINISTRATOR"
+                )
+                    return next([new InsufficientPermissionsError()]);
+
+                err = checkPermissionsHierarchically(
+                    currentUser,
+                    user.countyId,
+                    user.villageId,
+                    user.localityId
+                );
+                if (err) return next([err]);
+            }
+
+            err = validateStatus(status);
+            if (err) errors.push(err);
+            else {
+                newData["status"] = status;
+            }
+        }
+
+        if (zoneRole !== undefined || zoneRoleOn !== undefined) {
+            if (!currentUser.admin) {
+                if (currentUser.zoneRole !== "ADMINISTRATOR")
+                    return next([new InsufficientPermissionsError()]);
+
+                err = checkPermissionsHierarchically(
+                    currentUser,
+                    user.countyId,
+                    user.villageId,
+                    user.localityId
+                );
+                if (err) return next([err]);
+            }
+            err = validateRole(zoneRole);
+            if (err) errors.push(err);
+
+            err = validateZone(zoneRoleOn);
+            if (err) errors.push(err);
+
+            if (errors.length === 0) {
+                newData["zoneRole"] = zoneRole;
+                newData["zoneRoleOn"] = zoneRoleOn;
+            }
+        }
+
+        if (errors.length) return next(errors);
+
+        const updateUser = await prisma.user.update({
+            where: {
+                id: userId,
+            },
+            data: newData,
+        });
+
+        res.sendStatus(200);
+    } catch (err) {
+        return next([err]);
+    }
 }
 
 module.exports = {

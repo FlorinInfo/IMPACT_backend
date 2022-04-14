@@ -11,6 +11,7 @@ const {
     LocalityInvalidError,
     RoleInvalidError,
     StatusInvalidError,
+    ZoneInvalidError,
 } = require("../errors/user.js");
 const { checkString, checkInt } = require("../utils/validators.js");
 
@@ -95,9 +96,16 @@ function validateStatus(status) {
     }
 }
 
+function validateZone(zone) {
+    if (zone !== "LOCALITY" && zone !== "VILLAGE" && zone !== "COUNTY") {
+        return new ZoneInvalidError();
+    }
+}
+
 module.exports = {
     validateUserData,
     validateUserDataLogin,
     validateRole,
     validateStatus,
+    validateZone,
 };

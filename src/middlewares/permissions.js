@@ -2,10 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const { InvalidJWT } = require("../errors/jwt.js");
-const {
-    InvalidUserError,
-    InsufficientPermissionsError,
-} = require("../errors/permissions.js");
+const { InsufficientPermissionsError } = require("../errors/permissions.js");
+const { InvalidUserError } = require("../errors/user.js");
 const { decodeToken } = require("../utils/jwt.js");
 
 async function identifyUser(req, res, next) {
@@ -37,7 +35,9 @@ async function identifyUser(req, res, next) {
             },
         });
         if (!currentUser) {
-            return next([new InvalidUserError()]);
+            return next([
+                new InvalidUserError({ statusCode: 401, title: "permission" }),
+            ]);
         }
 
         req.currentUser = currentUser;
