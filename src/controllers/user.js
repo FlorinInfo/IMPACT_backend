@@ -435,7 +435,7 @@ async function modifyUser(req, res, next) {
                         from: "Impact no-reply@contact.imp-act.ml",
                         to: user.email,
                         subject: "Informatii cont",
-                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma! https://imp-act.ml\n\nO zi buna!",
+                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
                     };
                     try {
                         const message = await mailgunClient.messages.create(
@@ -443,7 +443,7 @@ async function modifyUser(req, res, next) {
                             messageData
                         );
                     } catch (err) {
-                        next([new MailgunError()]);
+                        return next([new MailgunError()]);
                     }*/
                 }
             }
@@ -489,9 +489,84 @@ async function modifyUser(req, res, next) {
     }
 }
 
+async function deleteUser(req, res, next) {
+    try {
+        let err;
+        const currentUser = req.currentUser;
+        let { userId } = req.params;
+
+        userId = parseInt(userId, 10);
+        if (!checkInt(userId)) {
+            return next([
+                new InvalidIntegerError({
+                    title: "userId",
+                    details: "Id-ul utilizatorului",
+                }),
+            ]);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+        if (!user) {
+            return next([
+                new InvalidUserError({ title: "user", statusCode: 400 }),
+            ]);
+        }
+
+        if (!currentUser.admin) {
+            if (
+                (currentUser.zoneRole !== "MODERATOR" &&
+                    currentUser.zoneRole !== "ADMINISTRATOR") ||
+                user.status === "APROBAT"
+            )
+                return next([new InsufficientPermissionsError()]);
+
+            err = checkPermissionsHierarchically(
+                currentUser,
+                user.countyId,
+                user.villageId,
+                user.localityId
+            );
+            if (err) return next([err]);
+        }
+
+        // uncomment to send emails for account rejection
+        /*
+        const messageData = {
+            from: "Impact no-reply@contact.imp-act.ml",
+            to: user.email,
+            subject: "Informatii cont",
+            text: "Salut!\n\nContul tau pe aplicatia Impact nu a fost aprobat, te rugam sa incerci sa-ti creezi un nou cont pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
+        };
+        try {
+            const message = await mailgunClient.messages.create(
+                DOMAIN_MAILGUN,
+                messageData
+            );
+        } catch (err) {
+            return next([new MailgunError()]);
+        }
+        */
+
+        const deleteUser = await prisma.user.delete({
+            where: {
+                id: userId,
+            },
+        });
+
+        res.sendStatus(200);
+    } catch (err) {
+        return next([err]);
+    }
+}
+
 module.exports = {
     createUser,
     getUsers,
     login,
     modifyUser,
+    deleteUser,
 };
