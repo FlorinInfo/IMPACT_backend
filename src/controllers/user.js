@@ -2,6 +2,18 @@ const argon2 = require("argon2");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const API_KEY_MAILGUN = process.env.API_KEY_MAILGUN;
+const SENDER_MAILGUN = process.env.SENDER_MAILGUN;
+const DOMAIN_MAILGUN = process.env.DOMAIN_MAILGUN;
+const formData = require("form-data");
+const Mailgun = require("mailgun.js");
+const mailgun = new Mailgun(formData);
+const mailgunClient = mailgun.client({
+    username: "api",
+    key: API_KEY_MAILGUN,
+    url: "https://api.eu.mailgun.net",
+});
+
 const {
     validateUserData,
     validateUserDataLogin,
@@ -21,6 +33,7 @@ const {
 } = require("../errors/user.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { InvalidIntegerError } = require("../errors/general.js");
+const { MailgunError } = require("../errors/mailgun.js");
 
 const { decodeToken, generateToken } = require("../utils/jwt.js");
 const { checkInt } = require("../utils/validators.js");
@@ -361,7 +374,6 @@ async function getUsers(req, res, next) {
 }
 
 async function modifyUser(req, res, next) {
-    // TODO
     try {
         let err;
         const errors = [];
@@ -394,7 +406,6 @@ async function modifyUser(req, res, next) {
         }
 
         if (status !== undefined && status !== user.status) {
-            // TODO: trimite email cu notificare activare cont
             if (!currentUser.admin) {
                 if (
                     currentUser.zoneRole !== "MODERATOR" &&
@@ -415,6 +426,23 @@ async function modifyUser(req, res, next) {
             if (err) errors.push(err);
             else {
                 newData["status"] = status;
+
+                if (user.status === "IN_ASTEPTARE" && status === "APROBAT") {
+                    const messageData = {
+                        from: "Impact no-reply@contact.imp-act.ml",
+                        to: user.email,
+                        subject: "Informatii cont",
+                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma! https://imp-act.ml\n\nO zi buna!",
+                    };
+                    try {
+                        const message = await mailgunClient.messages.create(
+                            DOMAIN_MAILGUN,
+                            messageData
+                        );
+                    } catch (err) {
+                        next([new MailgunError()]);
+                    }
+                }
             }
         }
 
