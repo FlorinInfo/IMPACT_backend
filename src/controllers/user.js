@@ -349,6 +349,8 @@ async function getUsers(req, res, next) {
                 email: true,
                 photoUrl: true,
                 createTime: true,
+                zoneRole: true,
+                zoneRoleOn: true,
                 Locality: {
                     select: {
                         name: true,
@@ -428,7 +430,8 @@ async function modifyUser(req, res, next) {
                 newData["status"] = status;
 
                 if (user.status === "IN_ASTEPTARE" && status === "APROBAT") {
-                    const messageData = {
+                    // uncomment to send emails for account activation
+                    /*const messageData = {
                         from: "Impact no-reply@contact.imp-act.ml",
                         to: user.email,
                         subject: "Informatii cont",
@@ -441,7 +444,7 @@ async function modifyUser(req, res, next) {
                         );
                     } catch (err) {
                         next([new MailgunError()]);
-                    }
+                    }*/
                 }
             }
         }
