@@ -349,6 +349,7 @@ async function getUsers(req, res, next) {
                 email: true,
                 photoUrl: true,
                 createTime: true,
+                status: true,
                 zoneRole: true,
                 zoneRoleOn: true,
                 Locality: {
@@ -483,7 +484,7 @@ async function modifyUser(req, res, next) {
             data: newData,
         });
 
-        res.sendStatus(200);
+        res.sendStatus(204);
     } catch (err) {
         return next([err]);
     }
@@ -548,8 +549,7 @@ async function deleteUser(req, res, next) {
             );
         } catch (err) {
             return next([new MailgunError()]);
-        }
-        */
+        }*/
 
         const deleteUser = await prisma.user.delete({
             where: {
@@ -557,7 +557,7 @@ async function deleteUser(req, res, next) {
             },
         });
 
-        res.sendStatus(200);
+        res.sendStatus(204);
     } catch (err) {
         return next([err]);
     }
