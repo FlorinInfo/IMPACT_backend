@@ -1,3 +1,5 @@
+const { InsufficientPermissionsError } = require("../errors/permissions.js");
+
 function checkPermissionsHierarchically(user, countyId, villageId, localityId) {
     if (user.zoneRoleOn === "LOCALITY") {
         if (
