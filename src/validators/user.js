@@ -9,6 +9,9 @@ const {
     CountyInvalidError,
     VillageInvalidError,
     LocalityInvalidError,
+    RoleInvalidError,
+    StatusInvalidError,
+    ZoneInvalidError,
 } = require("../errors/user.js");
 const { checkString, checkInt } = require("../utils/validators.js");
 
@@ -73,7 +76,36 @@ function validatePhotoUrl(photoUrl) {
     if (!photoUrl || !photoUrl.trim()) return new PhotoInvalidError();
 }
 
+function validateRole(role) {
+    if (
+        role !== "CETATEAN" &&
+        role !== "ADMINISTRATOR" &&
+        role !== "MODERATOR"
+    ) {
+        return new RoleInvalidError();
+    }
+}
+
+function validateStatus(status) {
+    if (
+        status !== "IN_ASTEPTARE" &&
+        status !== "APROBAT" &&
+        status !== "BLOCAT"
+    ) {
+        return new StatusInvalidError();
+    }
+}
+
+function validateZone(zone) {
+    if (zone !== "LOCALITY" && zone !== "VILLAGE" && zone !== "COUNTY") {
+        return new ZoneInvalidError();
+    }
+}
+
 module.exports = {
     validateUserData,
     validateUserDataLogin,
+    validateRole,
+    validateStatus,
+    validateZone,
 };

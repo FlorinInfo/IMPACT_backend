@@ -2,9 +2,9 @@ const { PhotoInvalidError } = require("../errors/user.js");
 
 function uploadImage(req, res, next) {
     if (!req.file) {
-        next([new PhotoInvalidError()]);
+        return next([new PhotoInvalidError()]);
     } else {
-        const photoUrl = req.protocol + "://" + req.hostname + "/" + req.file.path;
+        const photoUrl = req.protocol + 's' + "://" + req.hostname + "/" + req.file.path;
         res.status(201).json({
             photoUrl: photoUrl,
         });

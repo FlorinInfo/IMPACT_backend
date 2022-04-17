@@ -67,7 +67,7 @@ async function createLocality(req, res, next) {
 
         res.sendStatus(201);
     } catch (err) {
-        next([err]);
+        return next([err]);
     }
 }
 

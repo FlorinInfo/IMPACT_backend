@@ -123,6 +123,56 @@ class EmailAlreadyExistsError extends Error {
     }
 }
 
+class RoleInvalidError extends Error {
+    constructor() {
+        super("RoleInvalidError");
+        this.type = "RoleInvalidError";
+        this.title = "role";
+        this.details = "Acest rol nu exista.";
+        this.statusCode = 400;
+    }
+}
+
+class StatusInvalidError extends Error {
+    constructor() {
+        super("StatusInvalidError");
+        this.type = "StatusInvalidError";
+        this.title = "status";
+        this.details = "Acest status nu exista.";
+        this.statusCode = 400;
+    }
+}
+
+class ZoneInvalidError extends Error {
+    constructor() {
+        super("ZoneInvalidError");
+        this.type = "ZoneInvalidError";
+        this.title = "zone";
+        this.details = "Aceast tip de zona nu exista.";
+        this.statusCode = 400;
+    }
+}
+
+class InvalidUserError extends Error {
+    constructor({ title, statusCode }) {
+        super("InvalidUserError");
+        this.type = "InvalidUserError";
+        this.title = title;
+        this.details = "Utilizatorul nu exista.";
+        this.statusCode = statusCode;
+    }
+}
+
+class AdministratorConflictError extends Error {
+    constructor() {
+        super("AdministratorConflictError");
+        this.type = "AdministratorConflictError";
+        this.title = "administrator";
+        this.details = "Poate sa fie doar un administrator intr-o zona.";
+        this.statusCode = 409;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
@@ -137,4 +187,9 @@ module.exports = {
     CountyInvalidError,
     VillageInvalidError,
     LocalityInvalidError,
+    RoleInvalidError,
+    StatusInvalidError,
+    InvalidUserError,
+    ZoneInvalidError,
+    AdministratorConflictError,
 };

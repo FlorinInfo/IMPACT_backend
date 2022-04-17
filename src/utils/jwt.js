@@ -31,13 +31,15 @@ function decodeToken(token) {
                         details: "Tokenul nu este inca valabil.",
                     }),
                 ];
-            case "TokenExpirationError":
+            case "TokenExpiredError":
                 return [
                     null,
                     new InvalidJWT({
                         details: "Tokenul este expirat.",
                     }),
                 ];
+            default:
+                return [null, err];
         }
     }
 }

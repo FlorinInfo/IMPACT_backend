@@ -2,8 +2,12 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const { InvalidJWT } = require("../errors/jwt.js");
-const { InvalidUser } = require("../errors/permissions.js");
+const { InsufficientPermissionsError } = require("../errors/permissions.js");
+const { InvalidUserError } = require("../errors/user.js");
+const { InvalidIntegerError } = require("../errors/general.js");
+
 const { decodeToken } = require("../utils/jwt.js");
+const { checkInt } = require("../utils/validators.js");
 
 async function identifyUser(req, res, next) {
     try {
@@ -34,16 +38,50 @@ async function identifyUser(req, res, next) {
             },
         });
         if (!currentUser) {
-            return next([new InvalidUser()]);
+            return next([
+                new InvalidUserError({ statusCode: 401, title: "permission" }),
+            ]);
         }
 
         req.currentUser = currentUser;
-        next();
+        return next();
     } catch (err) {
-        next([err]);
+        return next([err]);
+    }
+}
+
+function isAdmin(req, res, next) {
+    const currentUser = req.currentUser;
+    if (currentUser.admin) {
+        return next();
+    } else {
+        return next([new InsufficientPermissionsError()]);
+    }
+}
+
+function isAdminOrSelf(req, res, next) {
+    const currentUser = req.currentUser;
+    let { userId } = req.params;
+
+    userId = parseInt(userId, 10);
+    if (!checkInt(userId)) {
+        return next([
+            new InvalidIntegerError({
+                title: "userId",
+                details: "Id-ul utilizatorului",
+            }),
+        ]);
+    }
+
+    if (currentUser.admin || currentUser.id === userId) {
+        return next();
+    } else {
+        return next([new InsufficientPermissionsError()]);
     }
 }
 
 module.exports = {
     identifyUser,
+    isAdmin,
+    isAdminOrSelf,
 };
