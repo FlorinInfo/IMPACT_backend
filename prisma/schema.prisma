@@ -87,14 +87,20 @@ model Article {
   favoritedBy   User[]        @relation("_FavoriteUserArticle")
   author        User          @relation("OwnedArticles", fields: [authorId], references: [id])
   authorId      Int
+  zone          ZoneType
   createTime    DateTime      @default(now())
-  status        ArticleStatus @default(CREAT)
+  status        ArticleStatus @default(TRIMIS)
   articleGalery MediaFile[]
   comments      Comment[]
+  county        County?       @relation(fields: [countyId], references: [id])
+  countyId      Int?
+  village       Village?      @relation(fields: [villageId], references: [id])
+  villageId     Int?
+  locality      Locality?     @relation(fields: [localityId], references: [id])
+  localityId    Int?
 }
 
 enum ArticleStatus {
-  CREAT
   TRIMIS
   VIZIONAT
   IN_LUCRU
@@ -131,6 +137,7 @@ model County {
   administratorId Int?      @unique
   moderators      User[]
   Village         Village[]
+  articles        Article[]
 }
 
 model Village {
@@ -143,14 +150,16 @@ model Village {
   countyId        Int
   Locality        Locality[]
   city            Boolean    @default(false)
+  articles        Article[]
 }
 
 model Locality {
-  id              Int     @id @default(autoincrement())
-  village         Village @relation(fields: [villageId], references: [id])
+  id              Int       @id @default(autoincrement())
+  village         Village   @relation(fields: [villageId], references: [id])
   name            String
-  administrator   User?   @relation("administratorLocality", fields: [administratorId], references: [id])
-  administratorId Int?    @unique
+  administrator   User?     @relation("administratorLocality", fields: [administratorId], references: [id])
+  administratorId Int?      @unique
   moderators      User[]
   villageId       Int
+  articles        Article[]
 }
