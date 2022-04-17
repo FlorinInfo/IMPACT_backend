@@ -163,6 +163,16 @@ class InvalidUserError extends Error {
     }
 }
 
+class AdministratorConflictError extends Error {
+    constructor() {
+        super("AdministratorConflictError");
+        this.type = "AdministratorConflictError";
+        this.title = "administrator";
+        this.details = "Poate sa fie doar un administrator intr-o zona.";
+        this.statusCode = 409;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
@@ -181,4 +191,5 @@ module.exports = {
     StatusInvalidError,
     InvalidUserError,
     ZoneInvalidError,
+    AdministratorConflictError,
 };

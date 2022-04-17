@@ -30,6 +30,7 @@ const {
     CountyInvalidError,
     LocalityInvalidError,
     InvalidUserError,
+    AdministratorConflictError,
 } = require("../errors/user.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { InvalidIntegerError } = require("../errors/general.js");
@@ -530,6 +531,64 @@ async function modifyUser(req, res, next) {
             if (errors.length === 0) {
                 newData["zoneRole"] = zoneRole;
                 newData["zoneRoleOn"] = zoneRoleOn;
+            }
+
+            if (zoneRole === "ADMINISTRATOR") {
+                if (zoneRoleOn === "LOCALITY") {
+                    const locality = await prisma.locality.findUnique({
+                        where: {
+                            id: user.localityId,
+                        },
+                    });
+
+                    if (
+                        locality.administratorId &&
+                        locality.administratorId !== user.id
+                    )
+                        return next([new AdministratorConflictError()]);
+
+                    newData["locality"] = {
+                        connect: {
+                            id: user.localityId,
+                        },
+                    };
+                } else if (zoneRoleOn === "VILLAGE") {
+                    const village = await prisma.village.findUnique({
+                        where: {
+                            id: user.villageId,
+                        },
+                    });
+
+                    if (
+                        village.administratorId &&
+                        village.administratorId !== user.id
+                    )
+                        return next([new AdministratorConflictError()]);
+
+                    newData["village"] = {
+                        connect: {
+                            id: user.villageId,
+                        },
+                    };
+                } else if (zoneRoleOn === "COUNTY") {
+                    const county = await prisma.county.findUnique({
+                        where: {
+                            id: user.countyId,
+                        },
+                    });
+
+                    if (
+                        county.administratorId &&
+                        county.administratorId !== user.id
+                    )
+                        return next([new AdministratorConflictError()]);
+
+                    newData["county"] = {
+                        connect: {
+                            id: user.countyId,
+                        },
+                    };
+                }
             }
         }
 
