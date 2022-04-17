@@ -376,6 +376,64 @@ async function getUsers(req, res, next) {
     }
 }
 
+async function getUser(req, res, next) {
+    try {
+        const currentUser = req.currentUser;
+        let { userId } = req.params;
+
+        userId = parseInt(userId, 10);
+        if (!checkInt(userId)) {
+            return next([
+                new InvalidIntegerError({
+                    title: "userId",
+                    details: "Id-ul utilizatorului",
+                }),
+            ]);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                lastName: true,
+                firstName: true,
+                email: true,
+                photoUrl: true,
+                createTime: true,
+                status: true,
+                zoneRole: true,
+                zoneRoleOn: true,
+                Locality: {
+                    select: {
+                        name: true,
+                    },
+                },
+                Village: {
+                    select: {
+                        name: true,
+                    },
+                },
+                County: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
+        if (!user) {
+            return next([
+                new InvalidUserError({ title: "user", statusCode: 400 }),
+            ]);
+        }
+
+        res.status(200).json(user);
+    } catch (err) {
+        return next([err]);
+    }
+}
+
 async function modifyUser(req, res, next) {
     try {
         let err;
@@ -566,6 +624,7 @@ async function deleteUser(req, res, next) {
 module.exports = {
     createUser,
     getUsers,
+    getUser,
     login,
     modifyUser,
     deleteUser,

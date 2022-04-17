@@ -4,7 +4,10 @@ const prisma = new PrismaClient();
 const { InvalidJWT } = require("../errors/jwt.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { InvalidUserError } = require("../errors/user.js");
+const { InvalidIntegerError } = require("../errors/general.js");
+
 const { decodeToken } = require("../utils/jwt.js");
+const { checkInt } = require("../utils/validators.js");
 
 async function identifyUser(req, res, next) {
     try {
@@ -56,7 +59,29 @@ function isAdmin(req, res, next) {
     }
 }
 
+function isAdminOrSelf(req, res, next) {
+    const currentUser = req.currentUser;
+    let { userId } = req.params;
+
+    userId = parseInt(userId, 10);
+    if (!checkInt(userId)) {
+        return next([
+            new InvalidIntegerError({
+                title: "userId",
+                details: "Id-ul utilizatorului",
+            }),
+        ]);
+    }
+
+    if (currentUser.admin || currentUser.id === userId) {
+        return next();
+    } else {
+        return next([new InsufficientPermissionsError()]);
+    }
+}
+
 module.exports = {
     identifyUser,
     isAdmin,
+    isAdminOrSelf,
 };
