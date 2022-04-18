@@ -18,7 +18,18 @@ class VillageInvalidError extends Error {
     }
 }
 
+class LocalityInvalidError extends Error {
+    constructor() {
+        super("LocalityInvalidError");
+        this.type = "LocalityInvalidError";
+        this.title = "locality";
+        this.details = "Localitatea furnizata lipseste sau este invalida.";
+        this.statusCode = 400;
+    }
+}
+
 module.exports = {
     NameInvalidError,
     VillageInvalidError,
+    LocalityInvalidError,
 };

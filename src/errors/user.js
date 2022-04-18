@@ -143,16 +143,6 @@ class StatusInvalidError extends Error {
     }
 }
 
-class ZoneInvalidError extends Error {
-    constructor() {
-        super("ZoneInvalidError");
-        this.type = "ZoneInvalidError";
-        this.title = "zone";
-        this.details = "Aceast tip de zona nu exista.";
-        this.statusCode = 400;
-    }
-}
-
 class InvalidUserError extends Error {
     constructor({ title, statusCode }) {
         super("InvalidUserError");
@@ -190,6 +180,5 @@ module.exports = {
     RoleInvalidError,
     StatusInvalidError,
     InvalidUserError,
-    ZoneInvalidError,
     AdministratorConflictError,
 };
