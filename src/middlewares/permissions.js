@@ -55,7 +55,7 @@ function isAdmin(req, res, next) {
     if (currentUser.admin) {
         return next();
     } else {
-        return next([new InsufficientPermissionsError()]);
+        return next([new InsufficientPermissionsError({})]);
     }
 }
 
@@ -76,7 +76,18 @@ function isAdminOrSelf(req, res, next) {
     if (currentUser.admin || currentUser.id === userId) {
         return next();
     } else {
-        return next([new InsufficientPermissionsError()]);
+        return next([new InsufficientPermissionsError({})]);
+    }
+}
+
+function isApproved(req, res, next) {
+    const currentUser = req.currentUser;
+    if (currentUser.status === "APROBAT") {
+        return next();
+    } else {
+        return next([
+            new InsufficientPermissionsError({ type: "not-approved" }),
+        ]);
     }
 }
 
@@ -84,4 +95,5 @@ module.exports = {
     identifyUser,
     isAdmin,
     isAdminOrSelf,
+    isApproved,
 };

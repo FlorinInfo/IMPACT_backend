@@ -1,16 +1,18 @@
-const { PhotoInvalidError } = require("../errors/user.js");
+const { MediaInvalidError } = require("../errors/general.js");
 
-function uploadImage(req, res, next) {
+function uploadMedia(req, res, next) {
     if (!req.file) {
-        return next([new PhotoInvalidError()]);
+        return next([new MediaInvalidError()]);
     } else {
-        const photoUrl = req.protocol + 's' + "://" + req.hostname + "/" + req.file.path;
+        console.log(req.file);
+        const url =
+            req.protocol + "s" + "://" + req.hostname + "/" + req.file.path;
         res.status(201).json({
-            photoUrl: photoUrl,
+            url,
         });
     }
 }
 
 module.exports = {
-    uploadImage,
+    uploadMedia,
 };

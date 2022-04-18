@@ -227,7 +227,7 @@ async function getUsers(req, res, next) {
                 currentUser.zoneRole !== "MODERATOR" &&
                 currentUser.zoneRole !== "ADMINISTRATOR"
             )
-                return next([new InsufficientPermissionsError()]);
+                return next([new InsufficientPermissionsError({})]);
 
             err = checkPermissionsHierarchically(
                 currentUser,
@@ -256,7 +256,7 @@ async function getUsers(req, res, next) {
                 currentUser.zoneRole !== "ADMINISTRATOR" &&
                 !currentUser.admin
             ) {
-                return next([new InsufficientPermissionsError()]);
+                return next([new InsufficientPermissionsError({})]);
             }
             err = validateRole(role);
             if (err) errors.push(err);
@@ -486,7 +486,7 @@ async function modifyUser(req, res, next) {
                     currentUser.zoneRole !== "MODERATOR" &&
                     currentUser.zoneRole !== "ADMINISTRATOR"
                 )
-                    return next([new InsufficientPermissionsError()]);
+                    return next([new InsufficientPermissionsError({})]);
 
                 err = checkPermissionsHierarchically(
                     currentUser,
@@ -525,10 +525,10 @@ async function modifyUser(req, res, next) {
         if (zoneRole !== undefined || zoneRoleOn !== undefined) {
             if (!currentUser.admin) {
                 if (currentUser.zoneRole !== "ADMINISTRATOR")
-                    return next([new InsufficientPermissionsError()]);
+                    return next([new InsufficientPermissionsError({})]);
 
                 if (zoneRoleOn === "COUNTY" && zoneRole === "ADMINISTRATOR")
-                    return next([new InsufficientPermissionsError()]);
+                    return next([new InsufficientPermissionsError({})]);
 
                 err = checkPermissionsHierarchically(
                     currentUser,
@@ -739,7 +739,7 @@ async function deleteUser(req, res, next) {
                     currentUser.zoneRole !== "ADMINISTRATOR") ||
                 user.status === "APROBAT"
             )
-                return next([new InsufficientPermissionsError()]);
+                return next([new InsufficientPermissionsError({})]);
 
             err = checkPermissionsHierarchically(
                 currentUser,

@@ -28,4 +28,19 @@ class ZoneInvalidError extends Error {
     }
 }
 
-module.exports = { InvalidIntegerError, ZoneInvalidError, InvalidBooleanError };
+class MediaInvalidError extends Error {
+    constructor() {
+        super("MediaInvalidError");
+        this.type = "MediaInvalidError";
+        this.title = "media";
+        this.details = "Continutul media lipseste sau este invalid.";
+        this.statusCode = 400;
+    }
+}
+
+module.exports = {
+    InvalidIntegerError,
+    ZoneInvalidError,
+    InvalidBooleanError,
+    MediaInvalidError,
+};
