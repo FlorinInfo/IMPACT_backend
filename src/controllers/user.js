@@ -515,6 +515,9 @@ async function modifyUser(req, res, next) {
                 if (currentUser.zoneRole !== "ADMINISTRATOR")
                     return next([new InsufficientPermissionsError()]);
 
+                if (zoneRoleOn === "COUNTY" && zoneRole === "ADMINISTRATOR")
+                    return next([new InsufficientPermissionsError()]);
+
                 err = checkPermissionsHierarchically(
                     currentUser,
                     user.countyId,
