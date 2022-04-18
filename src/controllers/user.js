@@ -34,11 +34,14 @@ const {
     AdministratorConflictError,
 } = require("../errors/user.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
-const { InvalidIntegerError } = require("../errors/general.js");
+const {
+    InvalidIntegerError,
+    InvalidBooleanError,
+} = require("../errors/general.js");
 const { MailgunError } = require("../errors/mailgun.js");
 
 const { decodeToken, generateToken } = require("../utils/jwt.js");
-const { checkInt } = require("../utils/validators.js");
+const { checkInt, checkBoolean } = require("../utils/validators.js");
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 
 async function login(req, res, next) {
@@ -445,7 +448,16 @@ async function modifyUser(req, res, next) {
         const currentUser = req.currentUser;
         let { userId } = req.params;
 
-        let { status, zoneRole, zoneRoleOn } = req.body;
+        let { status, zoneRole, zoneRoleOn, forceAdministrator } = req.body;
+
+        if (forceAdministrator === undefined) forceAdministrator = false;
+        if (!checkBoolean(forceAdministrator))
+            return next([
+                new InvalidBooleanError({
+                    title: "forceAdministrator",
+                    details: "Parametrul pentru fortare administrator",
+                }),
+            ]);
 
         userId = parseInt(userId, 10);
         if (!checkInt(userId)) {
@@ -552,9 +564,35 @@ async function modifyUser(req, res, next) {
 
                     if (
                         locality.administratorId &&
-                        locality.administratorId !== user.id
+                        locality.administratorId !== user.id &&
+                        !forceAdministrator
                     )
                         return next([new AdministratorConflictError()]);
+
+                    if (locality.administratorId && forceAdministrator) {
+                        const oldAdministrator = await prisma.user.findUnique({
+                            where: {
+                                id: locality.administratorId,
+                            },
+                        });
+
+                        let data = {
+                            zoneRole: "CETATEAN",
+                        };
+
+                        if (oldAdministrator.localityId === null) {
+                            data["zoneRoleOn"] = "VILLAGE";
+                        } else {
+                            data["zoneRoleOn"] = "LOCALITY";
+                        }
+
+                        await prisma.user.update({
+                            where: {
+                                id: locality.administratorId,
+                            },
+                            data,
+                        });
+                    }
 
                     newData["locality"] = {
                         connect: {
@@ -570,9 +608,35 @@ async function modifyUser(req, res, next) {
 
                     if (
                         village.administratorId &&
-                        village.administratorId !== user.id
+                        village.administratorId !== user.id &&
+                        !forceAdministrator
                     )
                         return next([new AdministratorConflictError()]);
+
+                    if (village.administratorId && forceAdministrator) {
+                        const oldAdministrator = await prisma.user.findUnique({
+                            where: {
+                                id: village.administratorId,
+                            },
+                        });
+
+                        let data = {
+                            zoneRole: "CETATEAN",
+                        };
+
+                        if (oldAdministrator.localityId === null) {
+                            data["zoneRoleOn"] = "VILLAGE";
+                        } else {
+                            data["zoneRoleOn"] = "LOCALITY";
+                        }
+
+                        await prisma.user.update({
+                            where: {
+                                id: village.administratorId,
+                            },
+                            data,
+                        });
+                    }
 
                     newData["village"] = {
                         connect: {
@@ -588,9 +652,35 @@ async function modifyUser(req, res, next) {
 
                     if (
                         county.administratorId &&
-                        county.administratorId !== user.id
+                        county.administratorId !== user.id &&
+                        !forceAdministrator
                     )
                         return next([new AdministratorConflictError()]);
+
+                    if (county.administratorId && forceAdministrator) {
+                        const oldAdministrator = await prisma.user.findUnique({
+                            where: {
+                                id: county.administratorId,
+                            },
+                        });
+
+                        let data = {
+                            zoneRole: "CETATEAN",
+                        };
+
+                        if (oldAdministrator.localityId === null) {
+                            data["zoneRoleOn"] = "VILLAGE";
+                        } else {
+                            data["zoneRoleOn"] = "LOCALITY";
+                        }
+
+                        await prisma.user.update({
+                            where: {
+                                id: county.administratorId,
+                            },
+                            data,
+                        });
+                    }
 
                     newData["county"] = {
                         connect: {
