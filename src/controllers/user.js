@@ -19,8 +19,9 @@ const {
     validateUserDataLogin,
     validateRole,
     validateStatus,
-    validateZone,
 } = require("../validators/user.js");
+
+const { validateZone } = require("../validators/general.js");
 
 const {
     EmailNotExistsError,
@@ -191,6 +192,33 @@ async function getUsers(req, res, next) {
         let { role } = req.query;
         let { status } = req.query;
 
+        [offset, limit, countyId, villageId, localityId] = [
+            { value: offset, title: "offset", details: "Offset-ul" },
+            { value: limit, title: "limit", details: "Limita" },
+            { value: countyId, title: "countyId", details: "Id-ul judetului" },
+            {
+                value: villageId,
+                title: "villageId",
+                details: "Id-ul comunei/orasului",
+            },
+            {
+                value: localityId,
+                title: "localityId",
+                details: "Id-ul localitatii",
+            },
+        ].map(({ value, title, details }) => {
+            let v;
+            if (value) {
+                // Try to parse value to integer
+                v = parseInt(value, 10);
+                if (!checkInt(v)) {
+                    errors.push(new InvalidIntegerError({ title, details }));
+                }
+            }
+            return v;
+        });
+        if (errors.length) return next(errors);
+
         if (!currentUser.admin) {
             if (
                 currentUser.zoneRole !== "MODERATOR" &&
@@ -236,33 +264,6 @@ async function getUsers(req, res, next) {
             err = validateStatus(status);
             if (err) errors.push(err);
         }
-
-        [offset, limit, countyId, villageId, localityId] = [
-            { value: offset, title: "offset", details: "Offset-ul" },
-            { value: limit, title: "limit", details: "Limita" },
-            { value: countyId, title: "countyId", details: "Id-ul judetului" },
-            {
-                value: villageId,
-                title: "villageId",
-                details: "Id-ul comunei/orasului",
-            },
-            {
-                value: localityId,
-                title: "localityId",
-                details: "Id-ul localitatii",
-            },
-        ].map(({ value, title, details }) => {
-            let v;
-            if (value) {
-                // Try to parse value to integer
-                v = parseInt(value, 10);
-                if (!checkInt(v)) {
-                    errors.push(new InvalidIntegerError({ title, details }));
-                }
-            }
-            return v;
-        });
-        if (errors.length) return next(errors);
 
         const usersCount = await prisma.user.count({
             where: {
@@ -514,6 +515,9 @@ async function modifyUser(req, res, next) {
                 if (currentUser.zoneRole !== "ADMINISTRATOR")
                     return next([new InsufficientPermissionsError()]);
 
+                if (zoneRoleOn === "COUNTY" && zoneRole === "ADMINISTRATOR")
+                    return next([new InsufficientPermissionsError()]);
+
                 err = checkPermissionsHierarchically(
                     currentUser,
                     user.countyId,
@@ -522,6 +526,11 @@ async function modifyUser(req, res, next) {
                 );
                 if (err) return next([err]);
             }
+
+            if (zoneRoleOn === "LOCALITY" && user.localityId === null) {
+                return next([new LocalityInvalidError()]);
+            }
+
             err = validateRole(zoneRole);
             if (err) errors.push(err);
 

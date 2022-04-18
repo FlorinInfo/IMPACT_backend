@@ -108,12 +108,12 @@ enum ArticleStatus {
 }
 
 model MediaFile {
-  id             Int      @id @default(autoincrement())
-  article        Article  @relation(fields: [articleId], references: [id])
-  articleId      Int
-  type           String
-  locationOnDisk String
-  createTime     DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  article    Article  @relation(fields: [articleId], references: [id])
+  articleId  Int
+  type       String
+  url        String
+  createTime DateTime @default(now())
 }
 
 model Comment {

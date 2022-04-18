@@ -8,4 +8,14 @@ class InvalidIntegerError extends Error {
     }
 }
 
-module.exports = { InvalidIntegerError };
+class ZoneInvalidError extends Error {
+    constructor() {
+        super("ZoneInvalidError");
+        this.type = "ZoneInvalidError";
+        this.title = "zone";
+        this.details = "Aceast tip de zona nu exista.";
+        this.statusCode = 400;
+    }
+}
+
+module.exports = { InvalidIntegerError, ZoneInvalidError };
