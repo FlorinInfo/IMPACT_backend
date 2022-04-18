@@ -4,7 +4,17 @@ class InvalidIntegerError extends Error {
         this.type = "InvalidIntegerError";
         this.title = title;
         this.details = `${details} trebuie sa fie un numar intreg.`;
-        this.statusCode = 401;
+        this.statusCode = 400;
+    }
+}
+
+class InvalidBooleanError extends Error {
+    constructor({ title, details }) {
+        super("InvalidBooleanError");
+        this.type = "InvalidBooleanError";
+        this.title = title;
+        this.details = `${details} trebuie sa fie o valoare booleana.`;
+        this.statusCode = 400;
     }
 }
 
@@ -18,4 +28,4 @@ class ZoneInvalidError extends Error {
     }
 }
 
-module.exports = { InvalidIntegerError, ZoneInvalidError };
+module.exports = { InvalidIntegerError, ZoneInvalidError, InvalidBooleanError };
