@@ -5,6 +5,7 @@ const multer = require("multer");
 
 const { isApproved, identifyUser } = require("../middlewares/permissions.js");
 const { uploadMedia } = require("../controllers/media.js");
+const { imageFilter, videoFilter } = require("../validators/media.js");
 
 const storageImagesIC = multer.diskStorage({
     destination: function (req, file, callback) {
@@ -39,9 +40,19 @@ const storageVideosArticles = multer.diskStorage({
     },
 });
 
-const uploaderImageIC = multer({ storage: storageImagesIC });
-const uploaderImageArticle = multer({ storage: storageImagesArticles });
-const uploaderVideoArticle = multer({ storage: storageVideosArticles });
+const uploaderImageIC = multer({
+    storage: storageImagesIC,
+    fileFilter: imageFilter,
+});
+const uploaderImageArticle = multer({
+    storage: storageImagesArticles,
+    fileFilter: imageFilter,
+});
+
+const uploaderVideoArticle = multer({
+    storage: storageVideosArticles,
+    fileFilter: videoFilter,
+});
 
 router.post("/upload-image-ic", uploaderImageIC.single("image"), uploadMedia);
 router.post(

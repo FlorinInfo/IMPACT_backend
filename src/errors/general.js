@@ -38,9 +38,33 @@ class MediaInvalidError extends Error {
     }
 }
 
+class VideoInvalidError extends Error {
+    constructor() {
+        super("VideoInvalidError");
+        this.type = "VideoInvalidError";
+        this.title = "video";
+        this.details =
+            "Videoclipul este invalid, momentan acceptam doar formatul mp4.";
+        this.statusCode = 400;
+    }
+}
+
+class ImageInvalidError extends Error {
+    constructor() {
+        super("ImageInvalidError");
+        this.type = "ImageInvalidError";
+        this.title = "image";
+        this.details =
+            "Imaginea este invalida, momentan acceptam un numar redus de formate.";
+        this.statusCode = 400;
+    }
+}
+
 module.exports = {
     InvalidIntegerError,
     ZoneInvalidError,
     InvalidBooleanError,
     MediaInvalidError,
+    VideoInvalidError,
+    ImageInvalidError,
 };

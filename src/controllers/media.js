@@ -1,7 +1,9 @@
 const { MediaInvalidError } = require("../errors/general.js");
 
 function uploadMedia(req, res, next) {
-    if (!req.file) {
+    if (req.errors && req.errors.length) {
+        return next(req.errors);
+    } else if (!req.file) {
         return next([new MediaInvalidError()]);
     } else {
         console.log(req.file);
