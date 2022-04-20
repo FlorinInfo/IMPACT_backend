@@ -410,6 +410,9 @@ async function getUser(req, res, next) {
                 status: true,
                 zoneRole: true,
                 zoneRoleOn: true,
+                localityId: true,
+                villageId: true,
+                countyId: true,
                 Locality: {
                     select: {
                         name: true,
