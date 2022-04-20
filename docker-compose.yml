@@ -18,7 +18,9 @@ services:
             npx prisma migrate deploy && 
             npm run ${ENV}"
     volumes:
-      - ${LOCAL_IMAGES_FOLDER}:/app/images
+      - ${LOCAL_ASSETS_FOLDER}/imagesIC:/app/assets/imagesIC
+      - ${LOCAL_ASSETS_FOLDER}/imagesArticles:/app/assets/imagesArticles
+      - ${LOCAL_ASSETS_FOLDER}/videosArticles:/app/assets/videosArticles
     ports:
       - 80:3000
 

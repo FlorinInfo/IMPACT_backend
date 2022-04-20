@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const { nanoid } = require("nanoid");
-
 const multer = require("multer");
-const storage = multer.diskStorage({
+
+const { isApproved, identifyUser } = require("../middlewares/permissions.js");
+const { uploadMedia } = require("../controllers/media.js");
+const { imageFilter, videoFilter } = require("../validators/media.js");
+
+const storageImagesIC = multer.diskStorage({
     destination: function (req, file, callback) {
-        callback(null, "./images");
+        callback(null, "./assets/imagesIC");
     },
     filename: function (req, file, callback) {
         const fileExtension = file.originalname.split(".").pop();
@@ -13,10 +17,57 @@ const storage = multer.diskStorage({
         callback(null, fileName);
     },
 });
-const upload = multer({ storage });
 
-const { uploadImage } = require("../controllers/media.js");
+const storageImagesArticles = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, "./assets/imagesArticles");
+    },
+    filename: function (req, file, callback) {
+        const fileExtension = file.originalname.split(".").pop();
+        const fileName = nanoid() + "." + fileExtension;
+        callback(null, fileName);
+    },
+});
 
-router.post("/upload-document", upload.single("image"), uploadImage);
+const storageVideosArticles = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, "./assets/videosArticles");
+    },
+    filename: function (req, file, callback) {
+        const fileExtension = file.originalname.split(".").pop();
+        const fileName = nanoid() + "." + fileExtension;
+        callback(null, fileName);
+    },
+});
+
+const uploaderImageIC = multer({
+    storage: storageImagesIC,
+    fileFilter: imageFilter,
+});
+const uploaderImageArticle = multer({
+    storage: storageImagesArticles,
+    fileFilter: imageFilter,
+});
+
+const uploaderVideoArticle = multer({
+    storage: storageVideosArticles,
+    fileFilter: videoFilter,
+});
+
+router.post("/upload-image-ic", uploaderImageIC.single("image"), uploadMedia);
+router.post(
+    "/upload-image-article",
+    identifyUser,
+    isApproved,
+    uploaderImageArticle.single("image"),
+    uploadMedia
+);
+router.post(
+    "/upload-video-article",
+    identifyUser,
+    isApproved,
+    uploaderVideoArticle.single("video"),
+    uploadMedia
+);
 
 module.exports = router;
