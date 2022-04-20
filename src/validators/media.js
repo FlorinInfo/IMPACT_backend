@@ -5,7 +5,7 @@ const {
 
 function imageFilter(req, file, cb) {
     const imageFormat = /^.+\.(gif|jpe?g|tiff?|png|webp|bmp)$/i;
-    if (!file.originalname.match(imageFortmat)) {
+    if (!file.originalname.match(imageFormat)) {
         req.errors = [new ImageInvalidError()];
         return cb(null, false);
     }
