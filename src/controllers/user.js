@@ -546,12 +546,23 @@ async function modifyUser(req, res, next) {
             err = validateRole(zoneRole);
             if (err) errors.push(err);
 
-            err = validateZone(zoneRoleOn);
-            if (err) errors.push(err);
+            if (zoneRole === "CETATEAN") {
+                if (errors.length === 0) {
+                    if (user.localityId === null) {
+                        newData["zoneRoleOn"] = "VILLAGE";
+                    } else {
+                        newData["zoneRoleOn"] = "LOCALITY";
+                    }
+                    newData["zoneRole"] = zoneRole;
+                }
+            } else {
+                err = validateZone(zoneRoleOn);
+                if (err) errors.push(err);
 
-            if (errors.length === 0) {
-                newData["zoneRole"] = zoneRole;
-                newData["zoneRoleOn"] = zoneRoleOn;
+                if (errors.length === 0) {
+                    newData["zoneRole"] = zoneRole;
+                    newData["zoneRoleOn"] = zoneRoleOn;
+                }
             }
 
             if (zoneRole === "ADMINISTRATOR") {
