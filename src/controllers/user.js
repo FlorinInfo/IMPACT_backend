@@ -572,6 +572,8 @@ async function modifyUser(req, res, next) {
                 }
             }
 
+            if (errors.length) return next(errors);
+
             if (zoneRole === "ADMINISTRATOR") {
                 if (zoneRoleOn === "LOCALITY") {
                     const locality = await prisma.locality.findUnique({
@@ -706,6 +708,25 @@ async function modifyUser(req, res, next) {
                         },
                     };
                 }
+            }
+
+            if (zoneRole !== "CETATEAN" && user.status === "IN_ASTEPTARE") {
+                newData["status"] = "APROBAT";
+                // uncomment to send emails for account activation
+                /*const messageData = {
+                        from: "Impact no-reply@contact.imp-act.ml",
+                        to: user.email,
+                        subject: "Informatii cont",
+                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
+                    };
+                    try {
+                        const message = await mailgunClient.messages.create(
+                            DOMAIN_MAILGUN,
+                            messageData
+                        );
+                    } catch (err) {
+                        return next([new MailgunError()]);
+                    }*/
             }
         }
 

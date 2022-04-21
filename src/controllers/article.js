@@ -25,7 +25,6 @@ async function createArticle(req, res, next) {
         if (errors.length) return next(errors);
 
         if (zone === "LOCALITY") {
-            if(currentUser.
             article = {
                 locality: {
                     connect: {
