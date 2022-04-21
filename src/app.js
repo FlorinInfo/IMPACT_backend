@@ -84,6 +84,9 @@ app.use("/villages", villages);
 const counties = require("./routes/county.js");
 app.use("/counties", counties);
 
+const articles = require("./routes/article.js");
+app.use("/articles", articles);
+
 const { login } = require("./controllers/user.js");
 app.post("/login", login);
 

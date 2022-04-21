@@ -5,9 +5,9 @@ const {
     getArticles,
     getArticle,
 } = require("../controllers/article.js");
-const { identifyUser } = require("../middlewares/permissions.js");
+const { identifyUser, isApproved } = require("../middlewares/permissions.js");
 
-router.post("/", identifyUser, createArticle);
+router.post("/", identifyUser, isApproved, createArticle);
 router.get("/", identifyUser, getArticles);
 router.get("/:articleId", identifyUser, getArticle);
 

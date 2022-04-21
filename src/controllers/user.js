@@ -21,7 +21,11 @@ const {
     validateStatus,
 } = require("../validators/user.js");
 
-const { validateZone } = require("../validators/general.js");
+const {
+    validateZone,
+    checkInt,
+    checkBoolean,
+} = require("../validators/general.js");
 
 const {
     EmailNotExistsError,
@@ -41,7 +45,6 @@ const {
 const { MailgunError } = require("../errors/mailgun.js");
 
 const { decodeToken, generateToken } = require("../utils/jwt.js");
-const { checkInt, checkBoolean } = require("../utils/validators.js");
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 
 async function login(req, res, next) {
@@ -413,6 +416,7 @@ async function getUser(req, res, next) {
                 localityId: true,
                 villageId: true,
                 countyId: true,
+                admin: true,
                 Locality: {
                     select: {
                         name: true,

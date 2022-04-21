@@ -7,7 +7,7 @@ const { InvalidUserError } = require("../errors/user.js");
 const { InvalidIntegerError } = require("../errors/general.js");
 
 const { decodeToken } = require("../utils/jwt.js");
-const { checkInt } = require("../utils/validators.js");
+const { checkInt } = require("../validators/general.js");
 
 async function identifyUser(req, res, next) {
     try {

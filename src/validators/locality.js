@@ -2,7 +2,7 @@ const {
     NameInvalidError,
     VillageInvalidError,
 } = require("../errors/locality.js");
-const { checkString, checkInt } = require("../utils/validators.js");
+const { checkString, checkInt } = require("./general.js");
 
 function validateLocalityData({ name, villageId, city }) {
     const errors = [];

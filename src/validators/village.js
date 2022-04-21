@@ -7,7 +7,7 @@ const {
     checkString,
     checkInt,
     checkBoolean,
-} = require("../utils/validators.js");
+} = require("./general.js");
 
 function validateVillageData({ name, countyId, city }) {
     const errors = [];

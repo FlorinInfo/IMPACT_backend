@@ -88,9 +88,10 @@ model Article {
   author        User          @relation("OwnedArticles", fields: [authorId], references: [id])
   authorId      Int
   zone          ZoneType
+  roleUser      ZoneRole
   createTime    DateTime      @default(now())
   status        ArticleStatus @default(TRIMIS)
-  articleGalery MediaFile[]
+  articleGallery MediaFile[]
   comments      Comment[]
   county        County?       @relation(fields: [countyId], references: [id])
   countyId      Int?
