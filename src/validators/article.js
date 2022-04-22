@@ -10,14 +10,16 @@ const {
 const { LocalityInvalidError } = require("../errors/locality.js");
 
 function validateArticleBody(
-    { zone, title, description, articleGallery },
+    { zone, title, description, articleGallery, zoneId },
     currentUser
 ) {
     const errors = [];
     let err;
 
-    err = validateZone(zone);
-    if (err) errors.push(err);
+    if (currentUser.admin === false) {
+        err = validateZone(zone);
+        if (err) errors.push(err);
+    }
 
     if (!checkString(title)) errors.push(new TitleInvalidError());
     if (!checkString(description)) errors.push(new DescriptionInvalidError());
@@ -34,7 +36,11 @@ function validateArticleBody(
         }
     }
 
-    if (currentUser.localityId === null && zone === "LOCALITY") {
+    if (
+        currentUser.localityId === null &&
+        zone === "LOCALITY" &&
+        zoneId === undefined
+    ) {
         errors.push(new LocalityInvalidError());
     }
 

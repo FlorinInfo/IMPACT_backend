@@ -78,27 +78,28 @@ model Log {
 }
 
 model Article {
-  id            Int           @id @default(autoincrement())
-  title         String
-  description   String
-  views         Int           @default(0)
-  upvoteUsers   User[]        @relation("_UpvotedUserArticle")
-  downvoteUsers User[]        @relation("_DownvotedUserArticle")
-  favoritedBy   User[]        @relation("_FavoriteUserArticle")
-  author        User          @relation("OwnedArticles", fields: [authorId], references: [id])
-  authorId      Int
-  zone          ZoneType
-  roleUser      ZoneRole
-  createTime    DateTime      @default(now())
-  status        ArticleStatus @default(TRIMIS)
+  id             Int           @id @default(autoincrement())
+  title          String
+  description    String
+  views          Int           @default(0)
+  upvoteUsers    User[]        @relation("_UpvotedUserArticle")
+  downvoteUsers  User[]        @relation("_DownvotedUserArticle")
+  favoritedBy    User[]        @relation("_FavoriteUserArticle")
+  author         User          @relation("OwnedArticles", fields: [authorId], references: [id])
+  authorId       Int
+  zone           ZoneType?
+  roleUser       ZoneRole?
+  admin          Boolean       @default(false)
+  createTime     DateTime      @default(now())
+  status         ArticleStatus @default(TRIMIS)
   articleGallery MediaFile[]
-  comments      Comment[]
-  county        County?       @relation(fields: [countyId], references: [id])
-  countyId      Int?
-  village       Village?      @relation(fields: [villageId], references: [id])
-  villageId     Int?
-  locality      Locality?     @relation(fields: [localityId], references: [id])
-  localityId    Int?
+  comments       Comment[]
+  county         County?       @relation(fields: [countyId], references: [id])
+  countyId       Int?
+  village        Village?      @relation(fields: [villageId], references: [id])
+  villageId      Int?
+  locality       Locality?     @relation(fields: [localityId], references: [id])
+  localityId     Int?
 }
 
 enum ArticleStatus {

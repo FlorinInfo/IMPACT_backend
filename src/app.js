@@ -39,7 +39,7 @@ app.get(
     }
 );
 app.use("/assets/imagesIC", express.static("./assets/imagesIC"));
-app.use("/assets/imagesArticles", express.static("./asstes/imagesArticles"));
+app.use("/assets/imagesArticles", express.static("./assets/imagesArticles"));
 app.use("/assets/videosArticles/:video", function getVideo(req, res) {
     const path = `./assets/videosArticles/${req.params.video}`;
     const stat = fs.statSync(path);
