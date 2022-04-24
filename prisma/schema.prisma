@@ -25,8 +25,6 @@ model User {
   status           UserStatus      @default(IN_ASTEPTARE)
   ownedArticles    Article[]       @relation("OwnedArticles")
   favoriteArticles Article[]       @relation("_FavoriteUserArticle")
-  upvotedPosts     Article[]       @relation("_UpvotedUserArticle")
-  downvotedPosts   Article[]       @relation("_DownvotedUserArticle")
   logs             Log[]
   comments         Comment[]
   county           County?         @relation("administratorCounty")
@@ -41,6 +39,7 @@ model User {
   County           County?         @relation(fields: [countyId], references: [id])
   Village          Village?        @relation(fields: [villageId], references: [id])
   Locality         Locality?       @relation(fields: [localityId], references: [id])
+  ArticleVotes     ArticleVote[]
 }
 
 enum ZoneRole {
@@ -81,9 +80,6 @@ model Article {
   id             Int           @id @default(autoincrement())
   title          String
   description    String
-  views          Int           @default(0)
-  upvoteUsers    User[]        @relation("_UpvotedUserArticle")
-  downvoteUsers  User[]        @relation("_DownvotedUserArticle")
   favoritedBy    User[]        @relation("_FavoriteUserArticle")
   author         User          @relation("OwnedArticles", fields: [authorId], references: [id])
   authorId       Int
@@ -100,6 +96,8 @@ model Article {
   villageId      Int?
   locality       Locality?     @relation(fields: [localityId], references: [id])
   localityId     Int?
+  votes          ArticleVote[]
+  votePoints     Int           @default(0)
 }
 
 enum ArticleStatus {
@@ -116,6 +114,22 @@ model MediaFile {
   type       String
   url        String
   createTime DateTime @default(now())
+}
+
+model ArticleVote {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  article    Article  @relation(fields: [articleId], references: [id])
+  articleId  Int
+  type       VoteType
+  createTime DateTime @default(now())
+
+  @@id([userId, articleId])
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
 }
 
 model Comment {

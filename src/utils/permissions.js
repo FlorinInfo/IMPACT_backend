@@ -21,4 +21,7 @@ function checkPermissionsHierarchically(user, countyId, villageId, localityId) {
     }
 }
 
+function checkPermissionsArticles(user, countyId, villageId, localityId) {
+}
+
 module.exports = { checkPermissionsHierarchically };

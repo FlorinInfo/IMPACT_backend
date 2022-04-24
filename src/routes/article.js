@@ -8,7 +8,7 @@ const {
 const { identifyUser, isApproved } = require("../middlewares/permissions.js");
 
 router.post("/", identifyUser, isApproved, createArticle);
-router.get("/", identifyUser, getArticles);
-router.get("/:articleId", identifyUser, getArticle);
+router.get("/", identifyUser, isApproved, getArticles);
+router.get("/:articleId", identifyUser, isApproved, getArticle);
 
 module.exports = router;
