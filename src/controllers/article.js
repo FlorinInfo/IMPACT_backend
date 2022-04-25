@@ -78,6 +78,29 @@ async function getArticles(req, res, next) {
                 skip: offset,
                 take: limit,
                 where: { admin: true },
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                        },
+                    },
+                    roleUser: true,
+                    status: true,
+                    createTime: true,
+                    articleGallery: {
+                        select: {
+                            url: true,
+                            type: true,
+                        },
+                    },
+                    admin: true,
+                    votePoints: true,
+                },
             });
 
             return res.status(200).json({ articles, limit: articlesCount });
@@ -166,28 +189,6 @@ async function getArticles(req, res, next) {
         let articles;
         const articlesCount = await prisma.article.count({
             where: articlesQuery,
-            select: {
-                id: true,
-                title: true,
-                description: true,
-                author: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                    },
-                },
-                roleUser: true,
-                status: true,
-                createTime: true,
-                articleGallery: {
-                    select: {
-                        url: true,
-                        type: true,
-                    },
-                },
-                admin: true,
-            },
         });
 
         if (articlesOrder) {
@@ -217,6 +218,7 @@ async function getArticles(req, res, next) {
                         },
                     },
                     admin: true,
+                    votePoints: true,
                 },
             });
         } else {
@@ -245,6 +247,7 @@ async function getArticles(req, res, next) {
                         },
                     },
                     admin: true,
+                    votePoints: true,
                 },
             });
         }

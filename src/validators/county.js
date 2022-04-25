@@ -3,7 +3,7 @@ const { checkString } = require("./general.js");
 
 function validateCountyData({ name }) {
     const errors = [];
-    if (!checkString(name)) errors.push(new nameinvaliderror());
+    if (!checkString(name)) errors.push(new NameInvalidError());
     return errors;
 }
 

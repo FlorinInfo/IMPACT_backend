@@ -11,35 +11,35 @@ datasource db {
 }
 
 model User {
-  id               Int             @id @default(autoincrement())
+  id               Int               @id @default(autoincrement())
   lastName         String
   firstName        String
   password         String
   address          String
-  email            String          @unique
-  points           Int             @default(0)
+  email            String            @unique
+  points           Int               @default(0)
   phoneNumber      String?
   accountRequest   AccountRequest?
   photoUrl         String
-  createTime       DateTime        @default(now())
-  status           UserStatus      @default(IN_ASTEPTARE)
-  ownedArticles    Article[]       @relation("OwnedArticles")
-  favoriteArticles Article[]       @relation("_FavoriteUserArticle")
+  createTime       DateTime          @default(now())
+  status           UserStatus        @default(IN_ASTEPTARE)
+  ownedArticles    Article[]         @relation("OwnedArticles")
   logs             Log[]
   comments         Comment[]
-  county           County?         @relation("administratorCounty")
+  county           County?           @relation("administratorCounty")
   countyId         Int?
-  village          Village?        @relation("administratorVillage")
+  village          Village?          @relation("administratorVillage")
   villageId        Int?
-  locality         Locality?       @relation("administratorLocality")
+  locality         Locality?         @relation("administratorLocality")
   localityId       Int?
-  zoneRole         ZoneRole        @default(CETATEAN)
-  zoneRoleOn       ZoneType        @default(LOCALITY)
-  admin            Boolean         @default(false)
-  County           County?         @relation(fields: [countyId], references: [id])
-  Village          Village?        @relation(fields: [villageId], references: [id])
-  Locality         Locality?       @relation(fields: [localityId], references: [id])
+  zoneRole         ZoneRole          @default(CETATEAN)
+  zoneRoleOn       ZoneType          @default(LOCALITY)
+  admin            Boolean           @default(false)
+  County           County?           @relation(fields: [countyId], references: [id])
+  Village          Village?          @relation(fields: [villageId], references: [id])
+  Locality         Locality?         @relation(fields: [localityId], references: [id])
   ArticleVotes     ArticleVote[]
+  FavoriteArticles ArticleFavorite[]
 }
 
 enum ZoneRole {
@@ -77,27 +77,27 @@ model Log {
 }
 
 model Article {
-  id             Int           @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   title          String
   description    String
-  favoritedBy    User[]        @relation("_FavoriteUserArticle")
-  author         User          @relation("OwnedArticles", fields: [authorId], references: [id])
+  author         User              @relation("OwnedArticles", fields: [authorId], references: [id])
   authorId       Int
   zone           ZoneType?
   roleUser       ZoneRole?
-  admin          Boolean       @default(false)
-  createTime     DateTime      @default(now())
-  status         ArticleStatus @default(TRIMIS)
+  admin          Boolean           @default(false)
+  createTime     DateTime          @default(now())
+  status         ArticleStatus     @default(TRIMIS)
   articleGallery MediaFile[]
   comments       Comment[]
-  county         County?       @relation(fields: [countyId], references: [id])
+  county         County?           @relation(fields: [countyId], references: [id])
   countyId       Int?
-  village        Village?      @relation(fields: [villageId], references: [id])
+  village        Village?          @relation(fields: [villageId], references: [id])
   villageId      Int?
-  locality       Locality?     @relation(fields: [localityId], references: [id])
+  locality       Locality?         @relation(fields: [localityId], references: [id])
   localityId     Int?
   votes          ArticleVote[]
-  votePoints     Int           @default(0)
+  votePoints     Int               @default(0)
+  favorites      ArticleFavorite[]
 }
 
 enum ArticleStatus {
@@ -122,6 +122,16 @@ model ArticleVote {
   article    Article  @relation(fields: [articleId], references: [id])
   articleId  Int
   type       VoteType
+  createTime DateTime @default(now())
+
+  @@id([userId, articleId])
+}
+
+model ArticleFavorite {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  article    Article  @relation(fields: [articleId], references: [id])
+  articleId  Int
   createTime DateTime @default(now())
 
   @@id([userId, articleId])
