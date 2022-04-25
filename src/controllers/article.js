@@ -373,7 +373,7 @@ async function createArticle(req, res, next) {
                     };
                 }
             } else if (zone === "COUNTY") {
-                if (zoneId !== undefined && zoneId !== currentUser.county) {
+                if (zoneId !== undefined && zoneId !== currentUser.countyId) {
                     return next([new InsufficientPermissionsError({})]);
                 }
 
@@ -384,6 +384,22 @@ async function createArticle(req, res, next) {
                         },
                     },
                 };
+            }
+
+            if (
+                currentUser.zoneRole !== "CETATEAN" &&
+                currentUser.zoneRoleOn === "LOCALITY" &&
+                (zone === "COUNTY" || zone === "VILLAGE")
+            ) {
+                article["roleUser"] = "CETATEAN";
+            } else if (
+                currentUser.zoneRole !== "CETATEAN" &&
+                currentUser.zoneRoleOn === "VILLAGE" &&
+                zone === "COUNTY"
+            ) {
+                article["roleUser"] = "CETATEAN";
+            } else {
+                article["roleUser"] = currentUser.zoneRole;
             }
 
             if (Array.isArray(articleGallery) && articleGallery.length > 0) {
@@ -397,7 +413,6 @@ async function createArticle(req, res, next) {
                             id: currentUser.id,
                         },
                     },
-                    roleUser: currentUser.zoneRole,
                     articleGallery: {
                         createMany: {
                             data: articleGallery.map(({ type, url }) => {
@@ -417,7 +432,6 @@ async function createArticle(req, res, next) {
                         },
                     },
                     description,
-                    roleUser: currentUser.zoneRole,
                 };
             }
         } else {
