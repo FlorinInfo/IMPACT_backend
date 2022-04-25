@@ -42,7 +42,7 @@ async function getLocalities(req, res, next) {
 
 async function createLocality(req, res, next) {
     try {
-        err = validateLocalityData(req.body); // the result of this function is an array
+        let err = validateLocalityData(req.body); // the result of this function is an array
         if (err.length) {
             return next(err);
         }
