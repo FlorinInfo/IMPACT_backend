@@ -5,6 +5,7 @@ const {
     ArticleGalleryInvalidError,
     UrlInvalidError,
     MediaTypeInvalidError,
+    StatusInvalidError,
 } = require("../errors/article.js");
 
 const { LocalityInvalidError } = require("../errors/locality.js");
@@ -64,6 +65,18 @@ function validateMediaType(type) {
         return new MediaTypeInvalidError();
 }
 
+function validateArticleStatus(status) {
+    if (
+        status !== "TRIMIS" &&
+        status !== "VIZIONAT" &&
+        status !== "IN_LUCRU" &&
+        status !== "EFECTUAT"
+    ) {
+        return new StatusInvalidError();
+    }
+}
+
 module.exports = {
     validateArticleBody,
+    validateArticleStatus,
 };

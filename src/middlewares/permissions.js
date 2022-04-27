@@ -5,6 +5,7 @@ const { InvalidJWT } = require("../errors/jwt.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { InvalidUserError } = require("../errors/user.js");
 const { InvalidIntegerError } = require("../errors/general.js");
+const { ArticleInvalidError } = require("../errors/article.js");
 
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 const { decodeToken } = require("../utils/jwt.js");
@@ -122,8 +123,6 @@ async function canSeeArticle(req, res, next) {
             articleId = req.body.articleId;
         }
 
-        if (currentUser.admin) return next();
-
         articleId = parseInt(articleId, 10);
         if (!checkInt(articleId)) {
             return next([
@@ -137,15 +136,61 @@ async function canSeeArticle(req, res, next) {
             where: {
                 id: articleId,
             },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+                articleGallery: {
+                    select: {
+                        url: true,
+                        type: true,
+                    },
+                },
+                votes: {
+                    where: {
+                        userId: currentUser.id,
+                    },
+                    select: {
+                        type: true,
+                    },
+                },
+                village: {
+                    select: {
+                        id: true,
+                        countyId: true,
+                    },
+                },
+                locality: {
+                    select: {
+                        id: true,
+                        villageId: true,
+                        village: {
+                            select: {
+                                id: true,
+                                countyId: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+        if (!article) {
+            return next([new ArticleInvalidError()]);
+        }
 
-        if (article.admin) {
+        if (currentUser.admin || article.admin) {
+            req.article = article;
             return next();
         } else if (
             article.localityId === currentUser.localityId ||
             article.villageId === currentUser.villageId ||
             article.countyId === currentUser.countyId
         ) {
+            req.article = article;
             return next();
         } else if (
             currentUser.zoneRole === "MODERATOR" ||
@@ -161,11 +206,13 @@ async function canSeeArticle(req, res, next) {
                 if (err) return next([err]);
             } else if (article.villageId) {
                 err = checkPermissionsHierarchically(
+                    currentUser,
                     article.village.countyId,
                     article.villageId
                 );
                 if (err) return next([err]);
             }
+            req.article = article;
             return next();
         } else return next([new InsufficientPermissionsError({})]);
     } catch (err) {

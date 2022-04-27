@@ -4,11 +4,31 @@ const {
     createArticle,
     getArticles,
     getArticle,
+    deleteArticle,
+    modifyArticle,
 } = require("../controllers/article.js");
-const { identifyUser, isApproved } = require("../middlewares/permissions.js");
+const {
+    identifyUser,
+    isApproved,
+    canSeeArticle,
+} = require("../middlewares/permissions.js");
 
 router.post("/", identifyUser, isApproved, createArticle);
 router.get("/", identifyUser, isApproved, getArticles);
-router.get("/:articleId", identifyUser, isApproved, getArticle);
+router.get("/:articleId", identifyUser, isApproved, canSeeArticle, getArticle);
+router.delete(
+    "/:articleId",
+    identifyUser,
+    isApproved,
+    canSeeArticle,
+    deleteArticle
+);
+router.patch(
+    "/:articleId",
+    identifyUser,
+    isApproved,
+    canSeeArticle,
+    modifyArticle
+);
 
 module.exports = router;

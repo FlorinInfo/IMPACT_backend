@@ -1,7 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const { validateArticleBody } = require("../validators/article.js");
+const {
+    validateArticleBody,
+    validateArticleStatus,
+} = require("../validators/article.js");
 const { InvalidIntegerError } = require("../errors/general.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { checkInt } = require("../validators/general.js");
@@ -489,6 +492,111 @@ async function createArticle(req, res, next) {
 
 async function getArticle(req, res, next) {
     try {
+        const currentArticle = req.article;
+        res.status(200).json(currentArticle);
+    } catch (err) {
+        return next([err]);
+    }
+}
+
+async function modifyArticle(req, res, next) {
+    try {
+        let err;
+        const newData = {};
+        const currentUser = req.currentUser;
+        const currentArticle = req.article;
+
+        const { status } = req.body;
+
+        if (status) {
+            err = validateArticleStatus(status);
+            if (err) return next([err]);
+            newData["status"] = status;
+        }
+
+        if (currentUser.zoneRole === "CETATEAN")
+            return next([new InsufficientPermissionsError({})]);
+
+        if (!currentUser.admin) {
+            let localityId, villageId, countyId;
+            if (currentArticle.locality) {
+                localityId = currentArticle.localityId;
+                villageId = currentArticle.locality.village.id;
+                countyId = currentArticle.locality.village.countyId;
+            } else if (currentArticle.village) {
+                villageId = currentArticle.villageId;
+                countyId = currentArticle.village.countyId;
+            } else {
+                countyId = currentArticle.countyId;
+            }
+
+            err = checkPermissionsHierarchically(
+                currentUser,
+                countyId,
+                villageId,
+                localityId
+            );
+            if (err) return next([err]);
+        }
+
+        const updateArticle = await prisma.article.update({
+            where: {
+                id: currentArticle.id,
+            },
+            data: newData,
+        });
+
+        res.sendStatus(204);
+    } catch (err) {
+        return next([err]);
+    }
+}
+
+async function deleteArticle(req, res, next) {
+    try {
+        const currentArticle = req.article;
+        const currentUser = req.currentUser;
+        if (
+            !currentUser.admin &&
+            (currentUser.zoneRole !== currentArticle.roleUser ||
+                currentUser.id !== currentArticle.authorId)
+        ) {
+            if (currentUser.zoneRole === "CETATEAN")
+                return next([new InsufficientPermissionsError({})]);
+            if (
+                currentUser.zoneRole === "MODERATOR" &&
+                currentArticle.roleUser === "ADMINISTRATOR"
+            )
+                return next([new InsufficientPermissionsError({})]);
+
+            let localityId, villageId, countyId;
+            if (currentArticle.locality) {
+                localityId = currentArticle.localityId;
+                villageId = currentArticle.locality.village.id;
+                countyId = currentArticle.locality.village.countyId;
+            } else if (currentArticle.village) {
+                villageId = currentArticle.villageId;
+                countyId = currentArticle.village.countyId;
+            } else {
+                countyId = currentArticle.countyId;
+            }
+
+            err = checkPermissionsHierarchically(
+                currentUser,
+                countyId,
+                villageId,
+                localityId
+            );
+            if (err) return next([err]);
+        }
+
+        const deleteArticle = await prisma.article.delete({
+            where: {
+                id: currentArticle.id,
+            },
+        });
+
+        res.sendStatus(204);
     } catch (err) {
         return next([err]);
     }
@@ -498,4 +606,6 @@ module.exports = {
     getArticles,
     getArticle,
     createArticle,
+    modifyArticle,
+    deleteArticle,
 };

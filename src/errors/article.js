@@ -48,10 +48,32 @@ class MediaTypeInvalidError extends Error {
     }
 }
 
+class StatusInvalidError extends Error {
+    constructor() {
+        super("StatusInvalidError");
+        this.type = "StatusInvalidError";
+        this.title = "status";
+        this.details = "Status-ul este invalid.";
+        this.statusCode = 400;
+    }
+}
+
+class ArticleInvalidError extends Error {
+    constructor() {
+        super("ArticleInvalidError");
+        this.type = "ArticleInvalidError";
+        this.title = "article";
+        this.details = "Articolul nu exista.";
+        this.statusCode = 404;
+    }
+}
+
 module.exports = {
     TitleInvalidError,
     DescriptionInvalidError,
     ArticleGalleryInvalidError,
     UrlInvalidError,
     MediaTypeInvalidError,
+    StatusInvalidError,
+    ArticleInvalidError,
 };
