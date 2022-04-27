@@ -19,7 +19,6 @@ model User {
   email            String            @unique
   points           Int               @default(0)
   phoneNumber      String?
-  accountRequest   AccountRequest?
   photoUrl         String
   createTime       DateTime          @default(now())
   status           UserStatus        @default(IN_ASTEPTARE)
@@ -60,17 +59,9 @@ enum UserStatus {
   BLOCAT
 }
 
-model AccountRequest {
-  id           Int      @id @default(autoincrement())
-  user         User     @relation(fields: [userId], references: [id])
-  userId       Int      @unique
-  identityCard String
-  createTime   DateTime @default(now())
-}
-
 model Log {
   id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId     Int
   action     String
   createTime DateTime @default(now())
@@ -80,7 +71,7 @@ model Article {
   id             Int               @id @default(autoincrement())
   title          String
   description    String
-  author         User              @relation("OwnedArticles", fields: [authorId], references: [id])
+  author         User              @relation("OwnedArticles", fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   authorId       Int
   zone           ZoneType?
   roleUser       ZoneRole?
@@ -109,7 +100,7 @@ enum ArticleStatus {
 
 model MediaFile {
   id         Int      @id @default(autoincrement())
-  article    Article  @relation(fields: [articleId], references: [id])
+  article    Article  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   articleId  Int
   type       String
   url        String
@@ -117,9 +108,9 @@ model MediaFile {
 }
 
 model ArticleVote {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId     Int
-  article    Article  @relation(fields: [articleId], references: [id])
+  article    Article  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   articleId  Int
   type       VoteType
   createTime DateTime @default(now())
@@ -128,9 +119,9 @@ model ArticleVote {
 }
 
 model ArticleFavorite {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId     Int
-  article    Article  @relation(fields: [articleId], references: [id])
+  article    Article  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   articleId  Int
   createTime DateTime @default(now())
 
@@ -144,12 +135,12 @@ enum VoteType {
 
 model Comment {
   id                Int       @id @default(autoincrement())
-  author            User      @relation(fields: [authorId], references: [id])
+  author            User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   authorId          Int
   commentForArticle Boolean
-  article           Article?  @relation(fields: [articleId], references: [id])
+  article           Article?  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   articleId         Int?
-  comment           Comment?  @relation("CommentReplies", fields: [commentId], references: [id])
+  comment           Comment?  @relation("CommentReplies", fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   replies           Comment[] @relation("CommentReplies")
   commentId         Int?
   text              String
@@ -168,7 +159,7 @@ model County {
 
 model Village {
   id              Int        @id @default(autoincrement())
-  county          County     @relation(fields: [countyId], references: [id])
+  county          County     @relation(fields: [countyId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   name            String
   administrator   User?      @relation("administratorVillage", fields: [administratorId], references: [id])
   administratorId Int?       @unique
@@ -181,7 +172,7 @@ model Village {
 
 model Locality {
   id              Int       @id @default(autoincrement())
-  village         Village   @relation(fields: [villageId], references: [id])
+  village         Village   @relation(fields: [villageId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   name            String
   administrator   User?     @relation("administratorLocality", fields: [administratorId], references: [id])
   administratorId Int?      @unique
