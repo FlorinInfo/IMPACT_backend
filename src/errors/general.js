@@ -23,7 +23,7 @@ class ZoneInvalidError extends Error {
         super("ZoneInvalidError");
         this.type = "ZoneInvalidError";
         this.title = "zone";
-        this.details = "Aceast tip de zona nu exista.";
+        this.details = "Acest tip de zona nu exista.";
         this.statusCode = 400;
     }
 }
