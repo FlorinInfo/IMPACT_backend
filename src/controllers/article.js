@@ -14,16 +14,49 @@ const { CustomHTTPError } = require("../errors/custom.js");
 
 async function getArticles(req, res, next) {
     try {
+        const currentUser = req.currentUser;
+        let select = {
+            id: true,
+            title: true,
+            description: true,
+            author: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                },
+            },
+            roleUser: true,
+            status: true,
+            createTime: true,
+            articleGallery: {
+                select: {
+                    url: true,
+                    type: true,
+                },
+            },
+            admin: true,
+            votePoints: true,
+            votes: {
+                where: {
+                    userId: currentUser.id,
+                },
+                select: {
+                    type: true,
+                },
+            },
+        };
+
         let err;
         let errors = [];
         const articlesQuery = {};
         let articlesOrder;
-        const currentUser = req.currentUser;
 
-        let { countyId, villageId, localityId, offset, limit } = req.query;
-        let { recent, completed, best, admin } = req.query;
+        let { countyId, villageId, localityId, offset, limit, cursor } =
+            req.query;
+        let { recent, completed, best, admin, inProgress } = req.query;
 
-        if (!!recent + !!completed + !!best + !!admin > 1) {
+        if (!!recent + !!completed + !!best + !!admin + !!inProgress > 1) {
             return next([
                 new CustomHTTPError({
                     type: "ActionInvalidError",
@@ -34,7 +67,7 @@ async function getArticles(req, res, next) {
             ]);
         }
 
-        [offset, limit, countyId, villageId, localityId] = [
+        [offset, limit, countyId, villageId, localityId, cursor] = [
             { value: offset, title: "offset", details: "Offset-ul" },
             { value: limit, title: "limit", details: "Limita" },
             { value: countyId, title: "countyId", details: "Id-ul judetului" },
@@ -48,6 +81,7 @@ async function getArticles(req, res, next) {
                 title: "localityId",
                 details: "Id-ul localitatii",
             },
+            { value: cursor, title: "cursor", details: "Cursor-ul" },
         ].map(({ value, title, details }) => {
             let v;
             if (value) {
@@ -66,6 +100,10 @@ async function getArticles(req, res, next) {
             articlesOrder = { createTime: "desc" };
         } else if (completed === "true") {
             articlesQuery["status"] = "EFECTUAT";
+        } else if (inProgress === "true") {
+            articlesQuery["status"] = {
+                not: "EFECTUAT",
+            };
         } else if (best === "true") {
             articlesOrder = { votePoints: "desc" };
         } else if (admin === "true") {
@@ -74,34 +112,25 @@ async function getArticles(req, res, next) {
                     admin: true,
                 },
             });
-            const articles = await prisma.article.findMany({
-                skip: offset,
-                take: limit,
-                where: { admin: true },
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                        },
+            let articles;
+            if (cursor) {
+                articles = await prisma.article.findMany({
+                    skip: 1,
+                    cursor: {
+                        id: cursor,
                     },
-                    roleUser: true,
-                    status: true,
-                    createTime: true,
-                    articleGallery: {
-                        select: {
-                            url: true,
-                            type: true,
-                        },
-                    },
-                    admin: true,
-                    votePoints: true,
-                },
-            });
+                    take: limit,
+                    where: { admin: true },
+                    select,
+                });
+            } else {
+                articles = await prisma.article.findMany({
+                    skip: offset,
+                    take: limit,
+                    where: { admin: true },
+                    select,
+                });
+            }
 
             return res.status(200).json({ articles, limit: articlesCount });
         }
@@ -192,64 +221,45 @@ async function getArticles(req, res, next) {
         });
 
         if (articlesOrder) {
-            articles = await prisma.article.findMany({
-                where: articlesQuery,
-                orderBy: articlesOrder,
-                take: limit,
-                skip: offset,
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                        },
+            if (cursor) {
+                articles = await prisma.article.findMany({
+                    where: articlesQuery,
+                    orderBy: articlesOrder,
+                    take: limit,
+                    skip: 1,
+                    cursor: {
+                        id: cursor,
                     },
-                    roleUser: true,
-                    status: true,
-                    createTime: true,
-                    articleGallery: {
-                        select: {
-                            url: true,
-                            type: true,
-                        },
-                    },
-                    admin: true,
-                    votePoints: true,
-                },
-            });
+                    select,
+                });
+            } else {
+                articles = await prisma.article.findMany({
+                    where: articlesQuery,
+                    orderBy: articlesOrder,
+                    take: limit,
+                    skip: offset,
+                    select,
+                });
+            }
         } else {
-            articles = await prisma.article.findMany({
-                where: articlesQuery,
-                take: limit,
-                skip: offset,
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                        },
+            if (cursor) {
+                articles = await prisma.article.findMany({
+                    where: articlesQuery,
+                    take: limit,
+                    cursor: {
+                        id: cursor,
                     },
-                    roleUser: true,
-                    status: true,
-                    createTime: true,
-                    articleGallery: {
-                        select: {
-                            url: true,
-                            type: true,
-                        },
-                    },
-                    admin: true,
-                    votePoints: true,
-                },
-            });
+                    skip: 1,
+                    select,
+                });
+            } else {
+                articles = await prisma.article.findMany({
+                    where: articlesQuery,
+                    take: limit,
+                    skip: offset,
+                    select,
+                });
+            }
         }
 
         res.status(200).json({ articles, limit: articlesCount });
