@@ -48,6 +48,14 @@ async function getArticles(req, res, next) {
                     type: true,
                 },
             },
+            favorites: {
+                where: {
+                    userId: currentUser.id,
+                },
+                select: {
+                    createTime: true,
+                },
+            },
         };
 
         let err;

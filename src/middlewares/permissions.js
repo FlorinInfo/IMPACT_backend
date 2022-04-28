@@ -158,6 +158,14 @@ async function canSeeArticle(req, res, next) {
                         type: true,
                     },
                 },
+                favorites: {
+                    where: {
+                        userId: currentUser.id,
+                    },
+                    select: {
+                        createTime: true,
+                    },
+                },
                 village: {
                     select: {
                         id: true,

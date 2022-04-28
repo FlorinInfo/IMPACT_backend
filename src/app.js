@@ -90,6 +90,9 @@ app.use("/articles", articles);
 const votes = require("./routes/vote.js");
 app.use("/votes", votes);
 
+const favoriteArticles = require("./routes/favoriteArticle.js");
+app.use("/favoriteArticles", favoriteArticles);
+
 const { login } = require("./controllers/user.js");
 app.post("/login", login);
 
