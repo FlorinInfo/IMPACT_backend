@@ -138,8 +138,8 @@ model Comment {
   author            User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   authorId          Int
   commentForArticle Boolean
-  article           Article?  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  articleId         Int?
+  article           Article  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  articleId         Int
   comment           Comment?  @relation("CommentReplies", fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   replies           Comment[] @relation("CommentReplies")
   commentId         Int?
