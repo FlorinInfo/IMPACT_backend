@@ -14,6 +14,9 @@ const {
     VillageInvalidError,
 } = require("../errors/locality.js");
 const { CustomHTTPError } = require("../errors/custom.js");
+const { InvalidUserError } = require("../errors/user.js");
+
+const { getFirstDayOfMonth } = require("../utils/date.js");
 
 async function getArticles(req, res, next) {
     try {
@@ -30,6 +33,9 @@ async function getArticles(req, res, next) {
                 },
             },
             roleUser: true,
+            localityId: true,
+            villageId: true,
+            countyId: true,
             status: true,
             createTime: true,
             articleGallery: {
@@ -68,11 +74,31 @@ async function getArticles(req, res, next) {
         const articlesQuery = {};
         let articlesOrder;
 
-        let { countyId, villageId, localityId, offset, limit, cursor } =
+        let { countyId, villageId, localityId, offset, limit, cursor, userId } =
             req.query;
-        let { recent, completed, best, admin, inProgress } = req.query;
+        let {
+            recent,
+            completed,
+            best,
+            admin,
+            inProgress,
+            favorites,
+            upvoted,
+            downvoted,
+            timespan,
+        } = req.query;
 
-        if (!!recent + !!completed + !!best + !!admin + !!inProgress > 1) {
+        if (
+            !!recent +
+                !!completed +
+                !!best +
+                !!admin +
+                !!inProgress +
+                !!favorites +
+                !!upvoted +
+                !!downvoted >
+            1
+        ) {
             return next([
                 new CustomHTTPError({
                     type: "ActionInvalidError",
@@ -83,7 +109,7 @@ async function getArticles(req, res, next) {
             ]);
         }
 
-        [offset, limit, countyId, villageId, localityId, cursor] = [
+        [offset, limit, countyId, villageId, localityId, cursor, userId] = [
             { value: offset, title: "offset", details: "Offset-ul" },
             { value: limit, title: "limit", details: "Limita" },
             { value: countyId, title: "countyId", details: "Id-ul judetului" },
@@ -98,6 +124,7 @@ async function getArticles(req, res, next) {
                 details: "Id-ul localitatii",
             },
             { value: cursor, title: "cursor", details: "Cursor-ul" },
+            { value: userId, title: "user", details: "Id-ul utilizatorului" },
         ].map(({ value, title, details }) => {
             let v;
             if (value) {
@@ -112,7 +139,19 @@ async function getArticles(req, res, next) {
 
         if (errors.length) return next(errors);
 
-        if (recent === "true") {
+        if (favorites === "true") {
+            articlesQuery["favorites"] = {
+                some: { userId: currentUser.id },
+            };
+        } else if (upvoted === "true") {
+            articlesQuery["votes"] = {
+                some: { userId: currentUser.id, type: "UPVOTE" },
+            };
+        } else if (downvoted === "true") {
+            articlesQuery["votes"] = {
+                some: { userId: currentUser.id, type: "DOWNVOTE" },
+            };
+        } else if (recent === "true") {
             articlesOrder = { createTime: "desc" };
         } else if (completed === "true") {
             articlesQuery["status"] = "EFECTUAT";
@@ -151,7 +190,38 @@ async function getArticles(req, res, next) {
             return res.status(200).json({ articles, limit: articlesCount });
         }
 
-        if (!!countyId + !!villageId + !!localityId !== 1) {
+        if (timespan === "today") {
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+            articlesQuery["createTime"] = {
+                gte: today,
+            };
+        } else if (timespan === "this_week") {
+            let firstDayOfWeek = new Date();
+            firstDayOfWeek.setDate(
+                firstDayOfWeek.getDate() - ((firstDayOfWeek.getDay() + 6) % 7)
+            );
+            firstDayOfWeek.setHours(0, 0, 0, 0);
+            articlesQuery["createTime"] = {
+                gte: firstDayOfWeek,
+            };
+        } else if (timespan === "this_month") {
+            const date = new Date();
+            const firstDayOfMonth = getFirstDayOfMonth(
+                date.getFullYear(),
+                date.getMonth()
+            );
+            articlesQuery["createTime"] = {
+                gte: firstDayOfMonth,
+            };
+        }
+
+        if (
+            !!countyId + !!villageId + !!localityId + !!userId !== 1 &&
+            favorites !== "true" &&
+            upvoted !== "true" &&
+            downvoted !== "true"
+        ) {
             return next([
                 new CustomHTTPError({
                     type: "ActionInvalidError",
@@ -220,6 +290,92 @@ async function getArticles(req, res, next) {
                 }
                 if (err) return next([err]);
                 articlesQuery["countyId"] = countyId;
+            } else if (userId) {
+                const user = await primsa.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!user) return next([new InvalidUserError()]);
+
+                if (currentUser.countyId !== user.countyId)
+                    return next([new InsufficientPermissionsError({})]);
+
+                if (currentUser.zoneRole === "CETATEAN") {
+                    articlesQuery["OR"] = [
+                        {
+                            localityId: {
+                                equals: currentUser.localityId,
+                            },
+                        },
+                        {
+                            villageId: {
+                                equals: currentUser.villageId,
+                            },
+                        },
+                        {
+                            countyId: {
+                                equals: currentUser.countyId,
+                            },
+                        },
+                    ];
+                } else {
+                    if (zoneRoleOn === "VILLAGE") {
+                        let localities = await prisma.locality.findMany({
+                            where: {
+                                villageId: currentUser.villageId,
+                            },
+                        });
+                        localities = localities.map((l) => {
+                            return l.id;
+                        });
+
+                        articlesQuery["OR"] = [
+                            {
+                                localityId: {
+                                    in: localities,
+                                },
+                                villageId: {
+                                    equals: currentUser.villageId,
+                                },
+                                countyId: {
+                                    equals: currentUser.countyId,
+                                },
+                            },
+                        ];
+                    } else if (zoneRoleOn === "COUNTY") {
+                        let villages = await prisma.village.findMany({
+                            where: {
+                                countyId: currentUser.countyId,
+                            },
+                        });
+                        villages = villages.map((v) => {
+                            return v.id;
+                        });
+                        let localities = await prisma.locality.findMany({
+                            where: {
+                                villageId: { in: villages },
+                            },
+                        });
+                        localities = localities.map((l) => {
+                            return l.id;
+                        });
+
+                        articlesQuery["OR"] = [
+                            {
+                                localityId: {
+                                    in: localities,
+                                },
+                                villageId: {
+                                    in: villages,
+                                },
+                                countyId: {
+                                    equals: currentUser.countyId,
+                                },
+                            },
+                        ];
+                    }
+                }
             }
         } else {
             if (localityId) {
@@ -228,6 +384,8 @@ async function getArticles(req, res, next) {
                 articlesQuery["villageId"] = villageId;
             } else if (countyId) {
                 articlesQuery["countyId"] = countyId;
+            } else if (userId) {
+                articlesQuery["authorId"] = userId;
             }
         }
 
