@@ -184,6 +184,11 @@ async function canSeeArticle(req, res, next) {
                         },
                     },
                 },
+                _count: {
+                    select: {
+                        comments: true,
+                    },
+                },
             },
         });
         if (!article) {

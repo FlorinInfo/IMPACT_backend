@@ -56,6 +56,11 @@ async function getArticles(req, res, next) {
                     createTime: true,
                 },
             },
+            _count: {
+                select: {
+                    comments: true,
+                },
+            },
         };
 
         let err;
