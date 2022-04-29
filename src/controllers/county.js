@@ -19,7 +19,7 @@ async function getCounties(req, res, next) {
 
 async function createCounty(req, res, next) {
     try {
-        err = validateCountyData(req.body); // the result of this function is an array
+        let err = validateCountyData(req.body); // the result of this function is an array
         if (err.length) {
             return next(err);
         }

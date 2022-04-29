@@ -1,9 +1,9 @@
 const { NameInvalidError } = require("../errors/county.js");
-const { checkString } = require("../utils/validators.js");
+const { checkString } = require("./general.js");
 
 function validateCountyData({ name }) {
     const errors = [];
-    if (!checkString(name)) errors.push(new nameinvaliderror());
+    if (!checkString(name)) errors.push(new NameInvalidError());
     return errors;
 }
 

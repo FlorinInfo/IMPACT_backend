@@ -13,7 +13,7 @@ const {
     StatusInvalidError,
 } = require("../errors/user.js");
 
-const { checkString, checkInt } = require("../utils/validators.js");
+const { checkString, checkInt } = require("./general.js");
 
 function validateUserData({
     lastName,
@@ -73,7 +73,7 @@ function validatePassword(password) {
 }
 
 function validatePhotoUrl(photoUrl) {
-    if (!photoUrl || !photoUrl.trim()) return new PhotoInvalidError();
+    if (!checkString(photoUrl)) return new PhotoInvalidError();
 }
 
 function validateRole(role) {

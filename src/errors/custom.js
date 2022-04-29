@@ -1,9 +1,9 @@
 class CustomHTTPError extends Error {
-    constructor({ title, title, details, statusCode }) {
+    constructor({ type, title, details, statusCode }) {
         super(type);
         this.type = type;
         this.title = title;
-        this.details = description;
+        this.details = details;
         this.statusCode = statusCode;
     }
 }

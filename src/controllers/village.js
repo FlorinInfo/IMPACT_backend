@@ -43,7 +43,7 @@ async function getVillages(req, res, next) {
 
 async function createVillage(req, res, next) {
     try {
-        err = validateVillageData(req.body); // the result of this function is an array
+        let err = validateVillageData(req.body); // the result of this function is an array
         if (err.length) {
             return next(err);
         }

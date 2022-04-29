@@ -13,7 +13,7 @@ class VillageInvalidError extends Error {
         super("VillageInvalidError");
         this.type = "VillageInvalidError";
         this.title = "village";
-        this.details = "Coumna furnizata lipseste sau este invalida.";
+        this.details = "Comuna furnizata lipseste sau este invalida.";
         this.statusCode = 400;
     }
 }
