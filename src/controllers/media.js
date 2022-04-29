@@ -6,7 +6,6 @@ function uploadMedia(req, res, next) {
     } else if (!req.file) {
         return next([new MediaInvalidError()]);
     } else {
-        console.log(req.file);
         const url =
             req.protocol + "s" + "://" + req.hostname + "/" + req.file.path;
         res.status(201).json({
