@@ -5,11 +5,12 @@ const {
     FavoriteArticleNotExistsError,
 } = require("../errors/favoriteArticle.js");
 const { checkInt } = require("../validators/general.js");
+const { InvalidIntegerError } = require("../errors/general.js");
 
 async function createFavoriteArticle(req, res, next) {
     try {
         const currentUser = req.currentUser;
-        let { articleId } = req.body;
+        let { articleId } = req.params;
 
         articleId = parseInt(articleId, 10);
         if (!checkInt(articleId)) {

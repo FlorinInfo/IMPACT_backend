@@ -31,4 +31,10 @@ router.patch(
     modifyArticle
 );
 
+const votes = require("./vote.js");
+router.use("/:articleId/users/:userId/vote", votes);
+
+const favoriteArticles = require("./favoriteArticle.js");
+router.use("/:articleId/users/:userId/favorite", favoriteArticles);
+
 module.exports = router;

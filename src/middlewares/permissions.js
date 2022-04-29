@@ -119,9 +119,7 @@ async function canSeeArticle(req, res, next) {
         let err;
         const currentUser = req.currentUser;
         let { articleId } = req.params;
-        if (!articleId) {
-            articleId = req.body.articleId;
-        }
+        console.log(articleId);
 
         articleId = parseInt(articleId, 10);
         if (!checkInt(articleId)) {

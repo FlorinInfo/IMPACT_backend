@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const {
     createVote,
     modifyVote,
@@ -13,21 +13,7 @@ const {
 } = require("../middlewares/permissions.js");
 
 router.post("/", identifyUser, isApproved, canSeeArticle, createVote);
-router.patch(
-    "/:articleId-:userId",
-    identifyUser,
-    isApproved,
-    isSelf,
-    canSeeArticle,
-    modifyVote
-);
-router.delete(
-    "/:articleId-:userId",
-    identifyUser,
-    isApproved,
-    isSelf,
-    canSeeArticle,
-    deleteVote
-);
+router.patch("/", identifyUser, isApproved, isSelf, canSeeArticle, modifyVote);
+router.delete("/", identifyUser, isApproved, isSelf, canSeeArticle, deleteVote);
 
 module.exports = router;

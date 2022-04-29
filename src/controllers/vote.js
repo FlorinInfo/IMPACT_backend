@@ -6,6 +6,7 @@ const {
     VoteNotExistsError,
 } = require("../errors/vote.js");
 const { checkInt } = require("../validators/general.js");
+const { InvalidIntegerError } = require("../errors/general.js");
 
 async function modifyVote(req, res, next) {
     try {
@@ -91,7 +92,8 @@ async function modifyVote(req, res, next) {
 async function createVote(req, res, next) {
     try {
         const currentUser = req.currentUser;
-        let { articleId, type } = req.body;
+        let { articleId } = req.params;
+        let { type } = req.body;
 
         articleId = parseInt(articleId, 10);
         if (!checkInt(articleId)) {

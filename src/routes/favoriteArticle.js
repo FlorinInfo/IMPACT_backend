@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const {
     createFavoriteArticle,
     deleteFavoriteArticle,
@@ -19,7 +19,7 @@ router.post(
     createFavoriteArticle
 );
 router.delete(
-    "/:articleId-:userId",
+    "/",
     identifyUser,
     isApproved,
     isSelf,
