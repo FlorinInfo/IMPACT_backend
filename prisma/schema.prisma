@@ -138,6 +138,8 @@ model Comment {
   author     User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   authorId   Int
   article    Article   @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  roleUser   ZoneRole?
+  admin      Boolean   @default(false)
   articleId  Int
   comment    Comment?  @relation("CommentReplies", fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   replies    Comment[] @relation("CommentReplies")
