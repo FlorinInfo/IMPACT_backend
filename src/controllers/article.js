@@ -225,7 +225,7 @@ async function getArticles(req, res, next) {
         }
 
         if (
-            !!countyId + !!villageId + !!localityId + !!userId !== 1 &&
+            !!countyId + !!villageId + !!localityId + !!userId + !!q !== 1 &&
             favorites !== "true" &&
             upvoted !== "true" &&
             downvoted !== "true"
@@ -385,6 +385,129 @@ async function getArticles(req, res, next) {
                         ];
                     }
                 }
+            } else if (checkString(q)) {
+                if (
+                    currentUser.zoneRole === "CETATEAN" ||
+                    currentUser.zoneRoleOn === "LOCALITY"
+                ) {
+                    articlesQuery["AND"] = [
+                        {
+                            OR: [
+                                {
+                                    localityId: {
+                                        equals: currentUser.localityId,
+                                    },
+                                },
+                                {
+                                    villageId: {
+                                        equals: currentUser.villageId,
+                                    },
+                                },
+                                {
+                                    countyId: {
+                                        equals: currentUser.countyId,
+                                    },
+                                },
+                            ],
+                        },
+                    ];
+                } else if (currentUser.zoneRoleOn === "VILLAGE") {
+                    let localities = await prisma.locality.findMany({
+                        where: {
+                            villageId: currentUser.villageId,
+                        },
+                    });
+                    localities = localities.map((l) => {
+                        return l.id;
+                    });
+
+                    articlesQuery["AND"] = [
+                        {
+                            OR: [
+                                {
+                                    localityId: {
+                                        in: localities,
+                                    },
+                                },
+                                {
+                                    villageId: {
+                                        equals: currentUser.villageId,
+                                    },
+                                },
+                                {
+                                    countyId: {
+                                        equals: currentUser.countyId,
+                                    },
+                                },
+                            ],
+                        },
+                    ];
+                } else if (currentUser.zoneRoleOn === "COUNTY") {
+                    let villages = await prisma.village.findMany({
+                        where: {
+                            countyId: currentUser.countyId,
+                        },
+                    });
+                    villages = villages.map((v) => {
+                        return v.id;
+                    });
+                    let localities = await prisma.locality.findMany({
+                        where: {
+                            villageId: { in: villages },
+                        },
+                    });
+                    localities = localities.map((l) => {
+                        return l.id;
+                    });
+
+                    articlesQuery["AND"] = [
+                        {
+                            OR: [
+                                {
+                                    localityId: {
+                                        in: localities,
+                                    },
+                                },
+                                {
+                                    villageId: {
+                                        in: villages,
+                                    },
+                                },
+                                {
+                                    countyId: {
+                                        equals: currentUser.countyId,
+                                    },
+                                },
+                            ],
+                        },
+                    ];
+                }
+
+                const queryString = q
+                    .split(" ")
+                    .filter((e) => e != " ")
+                    .join(" | ");
+                articlesQuery["AND"].push = {
+                    OR: [
+                        {
+                            title: {
+                                search: queryString,
+                            },
+                        },
+                        {
+                            description: {
+                                search: queryString,
+                            },
+                        },
+                    ],
+                };
+
+                articlesOrder = {};
+                articlesOrder["_relevance"] = {
+                    fields: ["title", "description"],
+                    search: queryString,
+                    sort: "desc",
+                };
             }
         } else {
             if (localityId) {
@@ -395,33 +518,31 @@ async function getArticles(req, res, next) {
                 articlesQuery["countyId"] = countyId;
             } else if (userId) {
                 articlesQuery["authorId"] = userId;
+            } else if (checkString(q)) {
+                const queryString = q
+                    .split(" ")
+                    .filter((e) => e != " ")
+                    .join(" | ");
+                articlesQuery["OR"] = [
+                    {
+                        title: {
+                            search: queryString,
+                        },
+                    },
+                    {
+                        description: {
+                            search: queryString,
+                        },
+                    },
+                ];
+
+                articlesOrder = {};
+                articlesOrder["_relevance"] = {
+                    fields: ["title", "description"],
+                    search: queryString,
+                    sort: "desc",
+                };
             }
-        }
-
-        if (checkString(q)) {
-            const queryString = q
-                .split(" ")
-                .filter((e) => e != " ")
-                .join(" | ");
-            articlesQuery["OR"] = [
-                {
-                    title: {
-                        search: queryString,
-                    },
-                },
-                {
-                    description: {
-                        search: queryString,
-                    },
-                },
-            ];
-
-            articlesOrder = {};
-            articlesOrder["_relevance"] = {
-                fields: ["title", "description"],
-                search: queryString,
-                sort: "desc",
-            };
         }
 
         let articles;
