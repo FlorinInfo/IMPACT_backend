@@ -41,6 +41,7 @@ async function createComment(req, res, next) {
                 },
             });
             if (!comment) return next([new CommentNotExistsError()]);
+
             if (comment.articleId != articleId)
                 return next([
                     new CustomHTTPError({
@@ -50,9 +51,22 @@ async function createComment(req, res, next) {
                         statusCode: 400,
                     }),
                 ]);
-            commentData["comment"] = {
-                connect: { id: commentId },
-            };
+
+            if (comment.commentId) {
+                commentData["comment"] = {
+                    connect: { id: comment.commentId },
+                };
+                commentData["parrentComment"] = {
+                    connect: { id: commentId },
+                };
+            } else {
+                commentData["comment"] = {
+                    connect: { id: commentId },
+                };
+                commentData["parrentComment"] = {
+                    connect: { id: commentId },
+                };
+            }
         }
 
         if (currentUser.admin) {
@@ -96,7 +110,39 @@ async function getComments(req, res, next) {
                 commentId: null,
             },
             include: {
-                replies: true,
+                replies: {
+                    select: {
+                        id: true,
+                        author: {
+                            select: {
+                                lastName: true,
+                                firstName: true,
+                            },
+                        },
+                        createTime: true,
+                        admin: true,
+                        roleUser: true,
+                        text: true,
+                        parrentComment: {
+                            select: {
+                                author: {
+                                    select: {
+                                        lastName: true,
+                                        firstName: true,
+                                        id: true,
+                                    },
+                                },
+                                id: true,
+                            },
+                        },
+                    },
+                },
+                author: {
+                    select: {
+                        lastName: true,
+                        firstName: true,
+                    },
+                },
             },
         });
 
