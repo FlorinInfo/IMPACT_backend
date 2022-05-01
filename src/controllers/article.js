@@ -7,7 +7,7 @@ const {
 } = require("../validators/article.js");
 const { InvalidIntegerError } = require("../errors/general.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
-const { checkInt } = require("../validators/general.js");
+const { checkInt, checkString } = require("../validators/general.js");
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 const {
     LocalityInvalidError,
@@ -74,8 +74,16 @@ async function getArticles(req, res, next) {
         const articlesQuery = {};
         let articlesOrder;
 
-        let { countyId, villageId, localityId, offset, limit, cursor, userId } =
-            req.query;
+        let {
+            countyId,
+            villageId,
+            localityId,
+            offset,
+            limit,
+            cursor,
+            userId,
+            q,
+        } = req.query;
         let {
             recent,
             completed,
@@ -260,11 +268,12 @@ async function getArticles(req, res, next) {
 
                 articlesQuery["localityId"] = localityId;
             } else if (villageId) {
-                if (currentUser.zoneRole === "CETATEAN") {
-                    if (currentUser.villageId !== villageId) {
-                        err = new InsufficientPermissionsError({});
-                    }
-                } else {
+                if (
+                    currentUser.zoneRole === "CETATEAN" &&
+                    currentUser.villageId !== villageId
+                ) {
+                    err = new InsufficientPermissionsError({});
+                } else if (currentUser.villageId !== villageId) {
                     const village = await prisma.village.findUnique({
                         where: {
                             id: villageId,
@@ -387,6 +396,32 @@ async function getArticles(req, res, next) {
             } else if (userId) {
                 articlesQuery["authorId"] = userId;
             }
+        }
+
+        if (checkString(q)) {
+            const queryString = q
+                .split(" ")
+                .filter((e) => e != " ")
+                .join(" | ");
+            articlesQuery["OR"] = [
+                {
+                    title: {
+                        search: queryString,
+                    },
+                },
+                {
+                    description: {
+                        search: queryString,
+                    },
+                },
+            ];
+
+            articlesOrder = {};
+            articlesOrder["_relevance"] = {
+                fields: ["title", "description"],
+                search: queryString,
+                sort: "desc",
+            };
         }
 
         let articles;

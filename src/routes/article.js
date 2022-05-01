@@ -37,4 +37,7 @@ router.use("/:articleId/users/:userId/vote", votes);
 const favoriteArticles = require("./favoriteArticle.js");
 router.use("/:articleId/users/:userId/favorite", favoriteArticles);
 
+const comments = require("./comment.js");
+router.use("/:articleId/comments", comments);
+
 module.exports = router;

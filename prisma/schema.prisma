@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -134,17 +135,22 @@ enum VoteType {
 }
 
 model Comment {
-  id                Int       @id @default(autoincrement())
-  author            User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  authorId          Int
-  commentForArticle Boolean
-  article           Article  @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  articleId         Int
-  comment           Comment?  @relation("CommentReplies", fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  replies           Comment[] @relation("CommentReplies")
-  commentId         Int?
-  text              String
-  createTime        DateTime  @default(now())
+  id             Int       @id @default(autoincrement())
+  author         User      @relation(fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  authorId       Int
+  article        Article   @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  roleUser       ZoneRole?
+  admin          Boolean   @default(false)
+  articleId      Int
+  comment        Comment?  @relation("CommentReplies", fields: [commentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  replies        Comment[] @relation("CommentReplies")
+  commentId      Int?
+  text           String
+  repliesComment Comment[] @relation("Reply")
+  parrentComment Comment?  @relation("Reply", fields: [repliedId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  repliedId      Int?
+
+  createTime DateTime @default(now())
 }
 
 model County {
