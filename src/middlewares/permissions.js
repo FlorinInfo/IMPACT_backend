@@ -230,11 +230,82 @@ async function canSeeArticle(req, res, next) {
     }
 }
 
+async function canSeeUser(req, res, next) {
+    try {
+        const currentUser = req.currentUser;
+        let { userId } = req.params;
+
+        userId = parseInt(userId, 10);
+        if (!checkInt(userId)) {
+            return next([
+                new InvalidIntegerError({
+                    title: "userId",
+                    details: "Id-ul utilizatorului",
+                }),
+            ]);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                lastName: true,
+                firstName: true,
+                email: true,
+                createTime: true,
+                status: true,
+                countyId: true,
+                villageId: true,
+                localityId: true,
+                zoneRole: true,
+                zoneRoleOn: true,
+                admin: true,
+                Locality: {
+                    select: {
+                        name: true,
+                    },
+                },
+                Village: {
+                    select: {
+                        name: true,
+                    },
+                },
+                County: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            return next([new InvalidUserError()]);
+        }
+
+        if (currentUser.admin || user.admin) {
+            req.user = user;
+            return next();
+        } else if (
+            user.localityId === currentUser.localityId ||
+            user.villageId === currentUser.villageId ||
+            user.countyId === currentUser.countyId
+        ) {
+            req.user = user;
+            return next();
+        } else return next([new InsufficientPermissionsError({})]);
+    } catch (err) {
+        return next([err]);
+    }
+}
+
 module.exports = {
     identifyUser,
     isAdmin,
     isAdminOrSelf,
     isApproved,
     canSeeArticle,
+    canSeeUser,
     isSelf,
 };

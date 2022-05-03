@@ -9,12 +9,12 @@ const {
 } = require("../controllers/user.js");
 const {
     identifyUser,
-    isAdminOrSelf,
+    canSeeUser,
 } = require("../middlewares/permissions.js");
 
 router.post("/", createUser);
 router.get("/", identifyUser, getUsers);
-router.get("/:userId", identifyUser, isAdminOrSelf, getUser);
+router.get("/:userId", identifyUser, canSeeUser, getUser);
 router.patch("/:userId", identifyUser, modifyUser);
 router.delete("/:userId", identifyUser, deleteUser);
 

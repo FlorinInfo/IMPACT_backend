@@ -387,57 +387,46 @@ async function getUsers(req, res, next) {
 async function getUser(req, res, next) {
     try {
         const currentUser = req.currentUser;
-        let { userId } = req.params;
+        const user = req.user;
+        const { stats } = req.query;
 
-        userId = parseInt(userId, 10);
-        if (!checkInt(userId)) {
-            return next([
-                new InvalidIntegerError({
-                    title: "userId",
-                    details: "Id-ul utilizatorului",
-                }),
-            ]);
-        }
+        if (stats === "true") {
+            const [upvotes, downvotes, comments, favorites, articles] =
+                await prisma.$transaction([
+                    prisma.articleVote.count({
+                        where: {
+                            userId: user.id,
+                            type: "UPVOTE",
+                        },
+                    }),
+                    prisma.articleVote.count({
+                        where: {
+                            userId: user.id,
+                            type: "DOWNVOTE",
+                        },
+                    }),
+                    prisma.comment.count({
+                        where: {
+                            authorId: user.id,
+                        },
+                    }),
+                    prisma.articleFavorite.count({
+                        where: {
+                            userId: user.id,
+                        },
+                    }),
+                    prisma.article.count({
+                        where: {
+                            authorId: user.id,
+                        },
+                    }),
+                ]);
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id: userId,
-            },
-            select: {
-                id: true,
-                lastName: true,
-                firstName: true,
-                email: true,
-                photoUrl: true,
-                createTime: true,
-                status: true,
-                zoneRole: true,
-                zoneRoleOn: true,
-                localityId: true,
-                villageId: true,
-                countyId: true,
-                admin: true,
-                Locality: {
-                    select: {
-                        name: true,
-                    },
-                },
-                Village: {
-                    select: {
-                        name: true,
-                    },
-                },
-                County: {
-                    select: {
-                        name: true,
-                    },
-                },
-            },
-        });
-        if (!user) {
-            return next([
-                new InvalidUserError({ title: "user", statusCode: 400 }),
-            ]);
+            user["numberUpvotes"] = upvotes;
+            user["numberDownvotes"] = downvotes;
+            user["comments"] = comments;
+            user["numberFavorites"] = favorites;
+            user["numberArticles"] = articles;
         }
 
         res.status(200).json(user);
