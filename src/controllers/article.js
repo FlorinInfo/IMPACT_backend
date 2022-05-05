@@ -97,22 +97,25 @@ async function getArticles(req, res, next) {
             timespan,
         } = req.query;
 
-        if (
-            !!recent +
-                !!completed +
-                !!best +
-                !!admin +
-                !!inProgress +
-                !!favorites +
-                !!upvoted +
-                !!downvoted >
-            1
-        ) {
+        if (!!favorites + !!upvoted + !!downvoted > 1) {
             return next([
                 new CustomHTTPError({
                     type: "ActionInvalidError",
                     title: "search",
-                    details: "Trebuie sa folosesti doar un filtru.",
+                    details:
+                        "Trebuie sa folosesti doar un filtru dintre upvoted, downvoted, favorites.",
+                    statusCode: 400,
+                }),
+            ]);
+        }
+
+        if (!!recent + !!completed + !!best + !!admin + !!inProgress > 1) {
+            return next([
+                new CustomHTTPError({
+                    type: "ActionInvalidError",
+                    title: "search",
+                    details:
+                        "Trebuie sa folosesti doar un filtru dintre recent, completed, best, admin, inProgress.",
                     statusCode: 400,
                 }),
             ]);
@@ -160,7 +163,9 @@ async function getArticles(req, res, next) {
             articlesQuery["votes"] = {
                 some: { userId: currentUser.id, type: "DOWNVOTE" },
             };
-        } else if (recent === "true") {
+        }
+
+        if (recent === "true") {
             articlesOrder = { createTime: "desc" };
         } else if (completed === "true") {
             articlesQuery["status"] = "EFECTUAT";
