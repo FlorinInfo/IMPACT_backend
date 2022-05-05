@@ -197,6 +197,7 @@ async function getUsers(req, res, next) {
         let { search } = req.query;
         let { role } = req.query;
         let { status } = req.query;
+        let { top } = req.query;
 
         [offset, limit, countyId, villageId, localityId] = [
             { value: offset, title: "offset", details: "Offset-ul" },
@@ -224,6 +225,107 @@ async function getUsers(req, res, next) {
             return v;
         });
         if (errors.length) return next(errors);
+
+        if (top === "true") {
+            if (!!countyId + !!villageId + !!localityId !== 1) {
+                return next([
+                    new CustomHTTPError({
+                        type: "ActionInvalidError",
+                        title: "search",
+                        details:
+                            "Trebuie sa folosesti doar un filtru de locatie.",
+                        statusCode: 400,
+                    }),
+                ]);
+            }
+
+            const usersQuery = {};
+            if (!currentUser.admin) {
+                if (localityId) {
+                    const locality = await prisma.locality.findUnique({
+                        where: {
+                            id: localityId,
+                        },
+                        select: {
+                            id: true,
+                            village: {
+                                select: {
+                                    id: true,
+                                    countyId: true,
+                                },
+                            },
+                        },
+                    });
+                    if (!locality) return next([new LocalityInvalidError()]);
+
+                    err = checkPermissionsHierarchically(
+                        currentUser,
+                        locality.village.countyId,
+                        locality.village.id,
+                        locality.id
+                    );
+                    if (err) return next([err]);
+
+                    usersQuery["localityId"] = localityId;
+                } else if (villageId) {
+                    if (
+                        currentUser.zoneRole === "CETATEAN" &&
+                        currentUser.villageId !== villageId
+                    ) {
+                        err = new InsufficientPermissionsError({});
+                    } else if (currentUser.villageId !== villageId) {
+                        const village = await prisma.village.findUnique({
+                            where: {
+                                id: villageId,
+                            },
+                            select: {
+                                id: true,
+                                countyId: true,
+                            },
+                        });
+
+                        err = checkPermissionsHierarchically(
+                            currentUser,
+                            village.countyId,
+                            village.id
+                        );
+                    }
+
+                    if (err) return next([err]);
+                    usersQuery["villageId"] = villageId;
+                } else if (countyId) {
+                    if (currentUser.countyId !== countyId) {
+                        err = new InsufficientPermissionsError({});
+                    }
+                    if (err) return next([err]);
+                    usersQuery["countyId"] = countyId;
+                }
+            } else {
+                if (localityId) {
+                    usersQuery["localityId"] = localityId;
+                } else if (villageId) {
+                    usersQuery["villageId"] = villageId;
+                } else if (countyId) {
+                    usersQuery["countyId"] = countyId;
+                }
+            }
+
+            const users = await prisma.user.findMany({
+                where: usersQuery,
+                take: 5,
+                orderBy: {
+                    monthlyPoints: "desc",
+                },
+                select: {
+                    id: true,
+                    lastName: true,
+                    firstName: true,
+                    monthlyPoints: true,
+                },
+            });
+
+            return res.status(200).json(users)
+        }
 
         if (!currentUser.admin) {
             if (
