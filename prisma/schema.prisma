@@ -19,6 +19,7 @@ model User {
   address          String
   email            String            @unique
   points           Int               @default(0)
+  monthlyPoints    Int               @default(0)
   phoneNumber      String?
   photoUrl         String
   createTime       DateTime          @default(now())

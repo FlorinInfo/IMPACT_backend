@@ -7,6 +7,8 @@ const {
 } = require("../errors/vote.js");
 const { checkInt } = require("../validators/general.js");
 const { InvalidIntegerError } = require("../errors/general.js");
+const { CustomHTTPError } = require("../errors/custom.js");
+const { getFirstDayOfMonth } = require("../utils/date.js");
 
 async function modifyVote(req, res, next) {
     try {
@@ -124,6 +126,19 @@ async function createVote(req, res, next) {
                 type: type,
             },
         });
+
+        const updateUser = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: {
+                monthlyPoints: {
+                    increment: 1,
+                },
+                points: {
+                    increment: 1,
+                },
+            },
+        });
+
         if (type === "UPVOTE") {
             const updateArticle = await prisma.article.update({
                 where: { id: articleId },
@@ -171,6 +186,23 @@ async function deleteVote(req, res, next) {
             },
         });
         if (!vote) return next([new VoteNotExistsError()]);
+
+        const updateUserData = {};
+        updateUserData["points"] = { increment: -1 };
+        const currentDate = new Date();
+        if (
+            vote.createTime >=
+            getFirstDayOfMonth(
+                currentDate.getFullYear(),
+                currentDate.getMonth()
+            )
+        ) {
+            updateUserData["monthlyPoints"] = { increment: -1 };
+        }
+        const updateUser = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: updateUserData,
+        });
 
         const deleteVote = await prisma.articleVote.delete({
             where: {

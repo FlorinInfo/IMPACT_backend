@@ -30,6 +30,7 @@ async function getArticles(req, res, next) {
                     id: true,
                     firstName: true,
                     lastName: true,
+                    monthlyPoints: true,
                 },
             },
             roleUser: true,
@@ -807,10 +808,21 @@ async function createArticle(req, res, next) {
             }
         }
 
+        const updateUser = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: {
+                monthlyPoints: {
+                    increment: 10,
+                },
+                points: {
+                    increment: 10,
+                },
+            },
+        });
+
         const createArticle = await prisma.article.create({
             data: article,
         });
-
         res.status(201).json({ id: createArticle.id });
     } catch (err) {
         return next([err]);
@@ -916,6 +928,23 @@ async function deleteArticle(req, res, next) {
             );
             if (err) return next([err]);
         }
+
+        const updateUserData = {};
+        updateUserData["points"] = { increment: -10 };
+        const currentDate = new Date();
+        if (
+            currentArticle.createTime >=
+            getFirstDayOfMonth(
+                currentDate.getFullYear(),
+                currentDate.getMonth()
+            )
+        ) {
+            updateUserData["monthlyPoints"] = { increment: -10 };
+        }
+        const updateUser = await prisma.user.update({
+            where: { id: currentArticle.author.id },
+            data: updateUserData,
+        });
 
         const deleteArticle = await prisma.article.delete({
             where: {

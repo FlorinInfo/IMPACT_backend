@@ -139,6 +139,7 @@ async function canSeeArticle(req, res, next) {
                         id: true,
                         firstName: true,
                         lastName: true,
+                        monthlyPoints: true,
                     },
                 },
                 articleGallery: {
@@ -262,6 +263,7 @@ async function canSeeUser(req, res, next) {
                 zoneRole: true,
                 zoneRoleOn: true,
                 admin: true,
+                monthlyPoints: true,
                 Locality: {
                     select: {
                         name: true,

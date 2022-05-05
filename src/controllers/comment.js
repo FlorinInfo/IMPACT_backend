@@ -9,6 +9,7 @@ const { InvalidIntegerError } = require("../errors/general.js");
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
 const { CustomHTTPError } = require("../errors/custom.js");
+const { getFirstDayOfMonth } = require("../utils/date.js");
 
 async function createComment(req, res, next) {
     try {
@@ -94,7 +95,19 @@ async function createComment(req, res, next) {
             data: commentData,
         });
 
-        return res.sendStatus(201);
+        const updateUser = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: {
+                monthlyPoints: {
+                    increment: 3,
+                },
+                points: {
+                    increment: 3,
+                },
+            },
+        });
+
+        return res.status(201).json({ id: comment.id });
     } catch (err) {
         return next([err]);
     }
@@ -117,6 +130,7 @@ async function getComments(req, res, next) {
                             select: {
                                 lastName: true,
                                 firstName: true,
+                                monthlyPoints: true,
                             },
                         },
                         createTime: true,
@@ -141,6 +155,7 @@ async function getComments(req, res, next) {
                     select: {
                         lastName: true,
                         firstName: true,
+                        monthlyPoints: true,
                     },
                 },
             },
@@ -171,6 +186,13 @@ async function deleteComment(req, res, next) {
         let comment = await prisma.comment.findUnique({
             where: {
                 id: commentId,
+            },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                    },
+                },
             },
         });
         if (!comment) return next([new CommentNotExistsError()]);
@@ -204,6 +226,23 @@ async function deleteComment(req, res, next) {
             );
             if (err) return next([err]);
         }
+
+        const updateUserData = {};
+        updateUserData["points"] = { increment: -3 };
+        const currentDate = new Date();
+        if (
+            comment.createTime >=
+            getFirstDayOfMonth(
+                currentDate.getFullYear(),
+                currentDate.getMonth()
+            )
+        ) {
+            updateUserData["monthlyPoints"] = { increment: -3 };
+        }
+        const updateUser = await prisma.user.update({
+            where: { id: comment.author.id },
+            data: updateUserData,
+        });
 
         const deteleComment = await prisma.comment.delete({
             where: {
