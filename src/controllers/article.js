@@ -858,10 +858,10 @@ async function modifyArticle(req, res, next) {
             newData["status"] = status;
         }
 
-        if (currentUser.zoneRole === "CETATEAN")
-            return next([new InsufficientPermissionsError({})]);
-
         if (!currentUser.admin) {
+            if (currentUser.zoneRole === "CETATEAN")
+                return next([new InsufficientPermissionsError({})]);
+
             let localityId, villageId, countyId;
             if (currentArticle.locality) {
                 localityId = currentArticle.localityId;

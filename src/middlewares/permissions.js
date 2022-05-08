@@ -222,6 +222,8 @@ async function canSeeArticle(req, res, next) {
                     article.villageId
                 );
                 if (err) return next([err]);
+            } else if (article.countyId) {
+                return next([new InsufficientPermissionsError({})]);
             }
             req.article = article;
             return next();

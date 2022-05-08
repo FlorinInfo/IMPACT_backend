@@ -321,10 +321,12 @@ async function getUsers(req, res, next) {
                     lastName: true,
                     firstName: true,
                     monthlyPoints: true,
+                    zoneRole: true,
+                    admin: true,
                 },
             });
 
-            return res.status(200).json(users)
+            return res.status(200).json(users);
         }
 
         if (!currentUser.admin) {
