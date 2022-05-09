@@ -311,7 +311,7 @@ async function getArticles(req, res, next) {
                         id: userId,
                     },
                 });
-                if (!user)
+                if (!user || user.status === "IN_ASTEPTARE")
                     return next([
                         new InvalidUserError({
                             title: "user",
