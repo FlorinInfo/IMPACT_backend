@@ -126,7 +126,7 @@ async function getArticles(req, res, next) {
                     type: "ActionInvalidError",
                     title: "search",
                     details:
-                        "Trebuie sa folosesti doar un filtru dintre recent, completed, best, admin, inProgress.",
+                        "Trebuie sa folosesti doar un filtru dintre recent, completed, best, admin, inProgress, seen, sent.",
                     statusCode: 400,
                 }),
             ]);
