@@ -306,17 +306,33 @@ async function getArticles(req, res, next) {
                 if (err) return next([err]);
                 articlesQuery["countyId"] = countyId;
             } else if (userId) {
-                const user = await primsa.user.findUnique({
+                const user = await prisma.user.findUnique({
                     where: {
                         id: userId,
                     },
                 });
-                if (!user) return next([new InvalidUserError()]);
+                if (!user)
+                    return next([
+                        new InvalidUserError({
+                            title: "user",
+                            statusCode: 404,
+                        }),
+                    ]);
 
                 if (currentUser.countyId !== user.countyId)
                     return next([new InsufficientPermissionsError({})]);
 
+                articlesQuery["authorId"] = userId;
+
                 if (currentUser.zoneRole === "CETATEAN") {
+                    if (
+                        currentUser.localityId !== user.localityId &&
+                        currentUser.villageId !== user.villageId &&
+                        currentUser.countyId !== user.countyId
+                    ) {
+                        return next([new InsufficientPermissionsError({})]);
+                    }
+
                     articlesQuery["OR"] = [
                         {
                             localityId: {
@@ -335,7 +351,14 @@ async function getArticles(req, res, next) {
                         },
                     ];
                 } else {
-                    if (zoneRoleOn === "VILLAGE") {
+                    if (currentUser.zoneRoleOn === "VILLAGE") {
+                        if (
+                            currentUser.villageId !== user.villageId &&
+                            currentUser.countyId !== user.countyId
+                        ) {
+                            return next([new InsufficientPermissionsError({})]);
+                        }
+
                         let localities = await prisma.locality.findMany({
                             where: {
                                 villageId: currentUser.villageId,
@@ -358,7 +381,7 @@ async function getArticles(req, res, next) {
                                 },
                             },
                         ];
-                    } else if (zoneRoleOn === "COUNTY") {
+                    } else if (currentUser.zoneRoleOn === "COUNTY") {
                         let villages = await prisma.village.findMany({
                             where: {
                                 countyId: currentUser.countyId,
