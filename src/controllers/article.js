@@ -91,6 +91,8 @@ async function getArticles(req, res, next) {
             best,
             admin,
             inProgress,
+            seen,
+            sent,
             favorites,
             upvoted,
             downvoted,
@@ -109,7 +111,16 @@ async function getArticles(req, res, next) {
             ]);
         }
 
-        if (!!recent + !!completed + !!best + !!admin + !!inProgress > 1) {
+        if (
+            !!recent +
+                !!completed +
+                !!best +
+                !!admin +
+                !!inProgress +
+                !!seen +
+                !!sent >
+            1
+        ) {
             return next([
                 new CustomHTTPError({
                     type: "ActionInvalidError",
@@ -170,9 +181,11 @@ async function getArticles(req, res, next) {
         } else if (completed === "true") {
             articlesQuery["status"] = "EFECTUAT";
         } else if (inProgress === "true") {
-            articlesQuery["status"] = {
-                not: "EFECTUAT",
-            };
+            articlesQuery["status"] = "IN_LUCRU";
+        } else if (seen === "true") {
+            articlesQuery["status"] = "VIZIONAT";
+        } else if (sent === "true") {
+            articlesQuery["status"] = "TRIMIS";
         } else if (best === "true") {
             articlesOrder = { votePoints: "desc" };
         } else if (admin === "true") {
