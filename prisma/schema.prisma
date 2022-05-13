@@ -41,6 +41,9 @@ model User {
   Locality         Locality?         @relation(fields: [localityId], references: [id])
   ArticleVotes     ArticleVote[]
   FavoriteArticles ArticleFavorite[]
+  invitedBy        User?             @relation("UsersInvited", fields: [invitedById], references: [id])
+  invitedById      Int?
+  usersInvited     User[]            @relation("UsersInvited")
 }
 
 enum ZoneRole {

@@ -11,6 +11,7 @@ const {
     LocalityInvalidError,
     RoleInvalidError,
     StatusInvalidError,
+    ReferralInvalidError,
 } = require("../errors/user.js");
 
 const { checkString, checkInt } = require("./general.js");
@@ -24,6 +25,7 @@ function validateUserData({
     countyId,
     villageId,
     localityId,
+    referralId,
 }) {
     const errors = [];
     let err;
@@ -32,6 +34,11 @@ function validateUserData({
     if (!checkString(firstName)) errors.push(new FirstNameInvalidError());
     if (!checkInt(countyId)) errors.push(new CountyInvalidError());
     if (!checkInt(villageId)) errors.push(new VillageInvalidError());
+    if (referralId) {
+        if (!checkInt(referralId)) {
+            errors.push(new ReferralInvalidError());
+        }
+    }
     if (localityId !== undefined && !checkInt(localityId))
         errors.push(new LocalityInvalidError());
 

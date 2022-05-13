@@ -163,6 +163,16 @@ class AdministratorConflictError extends Error {
     }
 }
 
+class ReferralInvalidError extends Error {
+    constructor() {
+        super("ReferralInvalidError");
+        this.type = "ReferralInvalidError";
+        this.title = "referral";
+        this.details = "Codul de referral este invalid.";
+        this.statusCode = 400;
+    }
+}
+
 module.exports = {
     ValidationError,
     EmailInvalidError,
@@ -181,4 +191,5 @@ module.exports = {
     StatusInvalidError,
     InvalidUserError,
     AdministratorConflictError,
+    ReferralInvalidError,
 };

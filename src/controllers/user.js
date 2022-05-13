@@ -88,6 +88,7 @@ async function login(req, res, next) {
 async function createUser(req, res, next) {
     try {
         const errors = [];
+        let data = {};
         let err;
 
         err = validateUserData(req.body); // the result of this function is an array
@@ -104,6 +105,7 @@ async function createUser(req, res, next) {
             countyId,
             villageId,
             localityId,
+            referralId,
         } = req.body;
 
         const userAlreadyExists = await prisma.user.findUnique({
@@ -147,12 +149,26 @@ async function createUser(req, res, next) {
             }
         }
 
+        if (referralId) {
+            const invitedBy = await prisma.user.findUnique({
+                where: {
+                    id: referralId,
+                },
+            });
+
+            if (!invitedBy) errors.push(new ReferralInvalidError());
+            else {
+                data["invitedById"] = referralId;
+            }
+        }
+
         if (errors.length) {
             return next(errors);
         }
 
         const passwordHashed = await argon2.hash(password);
-        const data = {
+        data = {
+            ...data,
             password: passwordHashed,
             address: "",
             lastName,
@@ -603,6 +619,28 @@ async function modifyUser(req, res, next) {
                 newData["status"] = status;
 
                 if (user.status === "IN_ASTEPTARE" && status === "APROBAT") {
+                    if (user.invitedById) {
+                        const userReferral = await prisma.user.findUnique({
+                            where: {
+                                id: user.invitedById,
+                            },
+                        });
+
+                        if (userReferral) {
+                            await prisma.user.update({
+                                where: { id: user.invitedById },
+                                data: {
+                                    monthlyPoints: {
+                                        increment: 15,
+                                    },
+                                    points: {
+                                        increment: 15,
+                                    },
+                                },
+                            });
+                        }
+                    }
+
                     const messageData = {
                         from: "Impact no-reply@contact.imp-act.ml",
                         to: user.email,
@@ -805,7 +843,33 @@ async function modifyUser(req, res, next) {
                 }
             }
 
-            if (zoneRole !== "CETATEAN" && user.status === "IN_ASTEPTARE") {
+            if (
+                zoneRole !== "CETATEAN" &&
+                user.status === "IN_ASTEPTARE" &&
+                status !== "APROBAT"
+            ) {
+                if (user.invitedById) {
+                    const userReferral = await prisma.user.findUnique({
+                        where: {
+                            id: user.invitedById,
+                        },
+                    });
+
+                    if (userReferral) {
+                        await prisma.user.update({
+                            where: { id: user.invitedById },
+                            data: {
+                                monthlyPoints: {
+                                    increment: 15,
+                                },
+                                points: {
+                                    increment: 15,
+                                },
+                            },
+                        });
+                    }
+                }
+
                 newData["status"] = "APROBAT";
                 const messageData = {
                     from: "Impact no-reply@contact.imp-act.ml",

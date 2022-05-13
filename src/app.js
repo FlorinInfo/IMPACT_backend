@@ -29,6 +29,19 @@ app.use(function (req, res, next) {
     return next();
 });
 
+// Clear cookies =((
+app.use(function (req, res, next) {
+    res.clearCookie("token");
+    res.clearCookie("zoneRole");
+    res.clearCookie("zoneRoleOn");
+    res.clearCookie("countyId");
+    res.clearCookie("villageId");
+    res.clearCookie("localityId");
+    res.clearCookie("admin");
+    res.clearCookie("referralId");
+    return next();
+});
+
 // Generate thumbnails for videos
 app.get(
     "/assets/videosArticles/:video/poster",
