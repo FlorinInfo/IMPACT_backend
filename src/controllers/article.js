@@ -99,18 +99,6 @@ async function getArticles(req, res, next) {
             timespan,
         } = req.query;
 
-        if (!!favorites + !!upvoted + !!downvoted > 1) {
-            return next([
-                new CustomHTTPError({
-                    type: "ActionInvalidError",
-                    title: "search",
-                    details:
-                        "Trebuie sa folosesti doar un filtru dintre upvoted, downvoted, favorites.",
-                    statusCode: 400,
-                }),
-            ]);
-        }
-
         if (
             !!recent +
                 !!completed +
@@ -118,6 +106,9 @@ async function getArticles(req, res, next) {
                 !!admin +
                 !!inProgress +
                 !!seen +
+                !!favorites +
+                !!upvoted +
+                !!downvoted +
                 !!sent >
             1
         ) {
@@ -126,7 +117,7 @@ async function getArticles(req, res, next) {
                     type: "ActionInvalidError",
                     title: "search",
                     details:
-                        "Trebuie sa folosesti doar un filtru dintre recent, completed, best, admin, inProgress, seen, sent.",
+                        "Trebuie sa folosesti doar un filtru dintre recent, completed, best, admin, inProgress, seen, sent, favorites, upvoted, downvoted.",
                     statusCode: 400,
                 }),
             ]);
@@ -162,20 +153,6 @@ async function getArticles(req, res, next) {
 
         if (errors.length) return next(errors);
 
-        if (favorites === "true") {
-            articlesQuery["favorites"] = {
-                some: { userId: currentUser.id },
-            };
-        } else if (upvoted === "true") {
-            articlesQuery["votes"] = {
-                some: { userId: currentUser.id, type: "UPVOTE" },
-            };
-        } else if (downvoted === "true") {
-            articlesQuery["votes"] = {
-                some: { userId: currentUser.id, type: "DOWNVOTE" },
-            };
-        }
-
         if (recent === "true") {
             articlesOrder = { createTime: "desc" };
         } else if (completed === "true") {
@@ -188,6 +165,18 @@ async function getArticles(req, res, next) {
             articlesQuery["status"] = "TRIMIS";
         } else if (best === "true") {
             articlesOrder = { votePoints: "desc" };
+        } else if (favorites === "true") {
+            articlesQuery["favorites"] = {
+                some: { userId: userId },
+            };
+        } else if (upvoted === "true") {
+            articlesQuery["votes"] = {
+                some: { userId: userId, type: "UPVOTE" },
+            };
+        } else if (downvoted === "true") {
+            articlesQuery["votes"] = {
+                some: { userId: userId, type: "DOWNVOTE" },
+            };
         } else if (admin === "true") {
             const articlesCount = await prisma.article.count({
                 where: {
@@ -335,7 +324,7 @@ async function getArticles(req, res, next) {
                 if (currentUser.countyId !== user.countyId)
                     return next([new InsufficientPermissionsError({})]);
 
-                articlesQuery["authorId"] = userId;
+                if (favorites !== "true") articlesQuery["authorId"] = userId;
 
                 if (currentUser.zoneRole === "CETATEAN") {
                     if (
@@ -529,6 +518,7 @@ async function getArticles(req, res, next) {
                     .split(" ")
                     .filter((e) => e != " ")
                     .join(" | ");
+
                 articlesQuery["AND"].push = {
                     OR: [
                         {
@@ -539,6 +529,16 @@ async function getArticles(req, res, next) {
                         {
                             description: {
                                 search: queryString,
+                            },
+                        },
+                        {
+                            title: {
+                                contains: q,
+                            },
+                        },
+                        {
+                            description: {
+                                contains: q,
                             },
                         },
                     ],
@@ -559,12 +559,13 @@ async function getArticles(req, res, next) {
             } else if (countyId) {
                 articlesQuery["countyId"] = countyId;
             } else if (userId) {
-                articlesQuery["authorId"] = userId;
+                if (favorites !== "true") articlesQuery["authorId"] = userId;
             } else if (checkString(q)) {
                 const queryString = q
                     .split(" ")
                     .filter((e) => e != " ")
                     .join(" | ");
+                console.log(queryString);
                 articlesQuery["OR"] = [
                     {
                         title: {
@@ -574,6 +575,16 @@ async function getArticles(req, res, next) {
                     {
                         description: {
                             search: queryString,
+                        },
+                    },
+                    {
+                        title: {
+                            contains: q,
+                        },
+                    },
+                    {
+                        description: {
+                            contains: q,
                         },
                     },
                 ];

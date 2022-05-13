@@ -603,12 +603,14 @@ async function modifyUser(req, res, next) {
                 newData["status"] = status;
 
                 if (user.status === "IN_ASTEPTARE" && status === "APROBAT") {
-                    // uncomment to send emails for account activation
-                    /*const messageData = {
+                    const messageData = {
                         from: "Impact no-reply@contact.imp-act.ml",
                         to: user.email,
                         subject: "Informatii cont",
-                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
+                        template: "account-approved",
+                        "h:X-Mailgun-Variables": JSON.stringify({
+                            firstName: user.firstName,
+                        }),
                     };
                     try {
                         const message = await mailgunClient.messages.create(
@@ -617,7 +619,7 @@ async function modifyUser(req, res, next) {
                         );
                     } catch (err) {
                         return next([new MailgunError()]);
-                    }*/
+                    }
                 }
             }
         }
@@ -805,21 +807,23 @@ async function modifyUser(req, res, next) {
 
             if (zoneRole !== "CETATEAN" && user.status === "IN_ASTEPTARE") {
                 newData["status"] = "APROBAT";
-                // uncomment to send emails for account activation
-                /*const messageData = {
-                        from: "Impact no-reply@contact.imp-act.ml",
-                        to: user.email,
-                        subject: "Informatii cont",
-                        text: "Salut!\n\nContul tau pe aplicatia Impact a fost aprobat, te asteptam pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
-                    };
-                    try {
-                        const message = await mailgunClient.messages.create(
-                            DOMAIN_MAILGUN,
-                            messageData
-                        );
-                    } catch (err) {
-                        return next([new MailgunError()]);
-                    }*/
+                const messageData = {
+                    from: "Impact no-reply@contact.imp-act.ml",
+                    to: user.email,
+                    subject: "Informatii cont",
+                    template: "account-approved",
+                    "h:X-Mailgun-Variables": JSON.stringify({
+                        firstName: user.firstName,
+                    }),
+                };
+                try {
+                    const message = await mailgunClient.messages.create(
+                        DOMAIN_MAILGUN,
+                        messageData
+                    );
+                } catch (err) {
+                    return next([new MailgunError()]);
+                }
             }
         }
 
@@ -882,13 +886,14 @@ async function deleteUser(req, res, next) {
             if (err) return next([err]);
         }
 
-        // uncomment to send emails for account rejection
-        /*
         const messageData = {
             from: "Impact no-reply@contact.imp-act.ml",
             to: user.email,
             subject: "Informatii cont",
-            text: "Salut!\n\nContul tau pe aplicatia Impact nu a fost aprobat, te rugam sa incerci sa-ti creezi un nou cont pe platforma!\nhttps://imp-act.ml\n\nO zi buna!",
+            template: "account-reject",
+            "h:X-Mailgun-Variables": JSON.stringify({
+                firstName: user.firstName,
+            }),
         };
         try {
             const message = await mailgunClient.messages.create(
@@ -897,7 +902,7 @@ async function deleteUser(req, res, next) {
             );
         } catch (err) {
             return next([new MailgunError()]);
-        }*/
+        }
 
         const deleteUser = await prisma.user.delete({
             where: {

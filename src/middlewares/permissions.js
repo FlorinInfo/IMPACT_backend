@@ -284,7 +284,7 @@ async function canSeeUser(req, res, next) {
             },
         });
 
-        if (!user || user.status === "IN_ASTEPTARE") {
+        if (!user) {
             return next([new InvalidUserError({title: 'user', statusCode: 404})]);
         }
 
