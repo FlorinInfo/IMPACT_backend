@@ -950,7 +950,7 @@ async function modifyUser(req, res, next) {
             }
         }
 
-        if (newPassword) {
+        if (newPassword || newPassword.trim() === "") {
             err = validatePassword({
                 password: newPassword,
                 title: "newPassword",
@@ -991,10 +991,7 @@ async function modifyUser(req, res, next) {
 
                 const { userId, changePassword } = tokenBody;
 
-                if (
-                    userId !== user.id ||
-                    changePassword !== true 
-                ) {
+                if (userId !== user.id || changePassword !== true) {
                     return next([
                         new CustomHTTPError({
                             type: "ActionNotAllowed",
