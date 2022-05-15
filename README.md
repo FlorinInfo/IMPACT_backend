@@ -27,8 +27,10 @@ Conturi default pentru fiecare tip de utilizator:
 
 ## 🕸️ Local
 ```
-$ npm install
-$ npm run start
+$ git clone git@github.com:FlorinInfo/FIICODE_backend.git
+$ cd FIICODE_backend
+$ docker build .
+$ docker compose up
 ```
 
 <div id="admin"></div>
