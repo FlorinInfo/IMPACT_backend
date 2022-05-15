@@ -46,10 +46,10 @@ class FirstNameInvalidError extends ValidationError {
 }
 
 class PasswordInvalidError extends ValidationError {
-    constructor() {
+    constructor({ title }) {
         super("PasswordInvalidError");
         this.type = "PasswordInvalidError";
-        this.title = "password";
+        this.title = title;
         this.details =
             "Parola furnizata nu are forma corecta, parola trebuie sa contina minimum 6 caractere.";
     }
@@ -103,10 +103,10 @@ class EmailNotExistsError extends Error {
 }
 
 class WrongPasswordError extends Error {
-    constructor() {
+    constructor({ title }) {
         super("WrongPassowordError");
         this.type = "WrongPasswordError";
-        this.title = "password";
+        this.title = title;
         this.details = "Parola nu corespunde adresei de email.";
         this.statusCode = 400;
     }

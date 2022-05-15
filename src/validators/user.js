@@ -48,7 +48,7 @@ function validateUserData({
     err = validateEmail(email);
     if (err) errors.push(err);
 
-    err = validatePassword(password);
+    err = validatePassword({ password, title: "password" });
     if (err) errors.push(err);
 
     return errors;
@@ -72,10 +72,10 @@ function validateEmail(email) {
     }
 }
 
-function validatePassword(password) {
+function validatePassword({ password, title }) {
     let passwordFormat = /^(?=.{6,})/;
     if (!checkString(password) || !password.match(passwordFormat)) {
-        return new PasswordInvalidError();
+        return new PasswordInvalidError({ title });
     }
 }
 
@@ -108,4 +108,6 @@ module.exports = {
     validateUserDataLogin,
     validateRole,
     validateStatus,
+    validateEmail,
+    validatePassword,
 };

@@ -8,8 +8,6 @@ const prisma = new PrismaClient();
 const fs = require("fs");
 const thumbsupply = require("thumbsupply");
 
-const { identifyUser } = require("./middlewares/permissions.js");
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -102,6 +100,9 @@ app.use("/articles", articles);
 
 const { login } = require("./controllers/user.js");
 app.post("/login", login);
+
+const { forgotPassword } = require("./controllers/user.js");
+app.post("/forgotPassword", forgotPassword);
 
 app.get("/status", (req, res) => {
     res.sendStatus(200);

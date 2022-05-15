@@ -12,6 +12,17 @@ function generateToken(userId) {
     );
 }
 
+function generatePasswordToken(userId, changePassword) {
+    return jwt.sign(
+        {
+            userId,
+            changePassword,
+        },
+        jwtSecret,
+        { expiresIn: 60 * 15 }
+    );
+}
+
 function decodeToken(token) {
     try {
         return [jwt.verify(token, jwtSecret), null];
@@ -47,4 +58,5 @@ function decodeToken(token) {
 module.exports = {
     generateToken,
     decodeToken,
+    generatePasswordToken,
 };

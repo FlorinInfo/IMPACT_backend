@@ -19,6 +19,8 @@ const {
     validateUserDataLogin,
     validateRole,
     validateStatus,
+    validateEmail,
+    validatePassword,
 } = require("../validators/user.js");
 
 const {
@@ -38,13 +40,18 @@ const {
     AdministratorConflictError,
 } = require("../errors/user.js");
 const { InsufficientPermissionsError } = require("../errors/permissions.js");
+const { CustomHTTPError } = require("../errors/custom.js");
 const {
     InvalidIntegerError,
     InvalidBooleanError,
 } = require("../errors/general.js");
 const { MailgunError } = require("../errors/mailgun.js");
 
-const { decodeToken, generateToken } = require("../utils/jwt.js");
+const {
+    decodeToken,
+    generateToken,
+    generatePasswordToken,
+} = require("../utils/jwt.js");
 const { checkPermissionsHierarchically } = require("../utils/permissions.js");
 
 async function login(req, res, next) {
@@ -78,8 +85,52 @@ async function login(req, res, next) {
                 status: user.status,
             });
         } else {
-            return next([new WrongPasswordError()]);
+            return next([new WrongPasswordError({ title: "password" })]);
         }
+    } catch (err) {
+        return next([err]);
+    }
+}
+
+async function forgotPassword(req, res, next) {
+    try {
+        let err;
+        const { email } = req.body;
+
+        err = validateEmail(email);
+        if (err) {
+            return next([err]);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
+        if (!user) {
+            return next([new EmailNotExistsError()]);
+        }
+
+        const messageData = {
+            from: "Impact no-reply@contact.imp-act.ml",
+            to: user.email,
+            subject: "Resetarea parolei pe Impact",
+            template: "forgot-password",
+            "h:X-Mailgun-Variables": JSON.stringify({
+                firstName: user.firstName,
+                passwordToken: generatePasswordToken(user.id, true),
+            }),
+        };
+        try {
+            const message = await mailgunClient.messages.create(
+                DOMAIN_MAILGUN,
+                messageData
+            );
+        } catch (err) {
+            return next([new MailgunError()]);
+        }
+
+        res.sendStatus(204);
     } catch (err) {
         return next([err]);
     }
@@ -564,7 +615,15 @@ async function modifyUser(req, res, next) {
         const currentUser = req.currentUser;
         let { userId } = req.params;
 
-        let { status, zoneRole, zoneRoleOn, forceAdministrator } = req.body;
+        let {
+            status,
+            zoneRole,
+            zoneRoleOn,
+            forceAdministrator,
+            oldPassword,
+            newPassword,
+            passwordToken,
+        } = req.body;
 
         if (forceAdministrator === undefined) forceAdministrator = false;
         if (!checkBoolean(forceAdministrator))
@@ -891,6 +950,66 @@ async function modifyUser(req, res, next) {
             }
         }
 
+        if (newPassword) {
+            err = validatePassword({
+                password: newPassword,
+                title: "newPassword",
+            });
+            if (err) errors.push(err);
+
+            if (currentUser.id !== user.id) {
+                return next([new InsufficientPermissionsError({})]);
+            }
+
+            if (!oldPassword && !passwordToken) {
+                return next([
+                    new CustomHTTPError({
+                        type: "ActionInvalidError",
+                        title: "verify",
+                        details:
+                            "Pentru schimbarea parolei este necesar să oferi parola veche sau token-ul din email.",
+                        statusCode: 403,
+                    }),
+                ]);
+            }
+
+            if (oldPassword) {
+                err = validatePassword({
+                    password: oldPassword,
+                    title: "oldPassword",
+                });
+                if (err) errors.push(err);
+
+                if (!(await argon2.verify(user.password, oldPassword))) {
+                    return next([
+                        new WrongPasswordError({ title: "oldPassword" }),
+                    ]);
+                }
+            } else if (passwordToken) {
+                let [tokenBody, err] = decodeToken(passwordToken);
+                if (err) return next([err]);
+
+                const { userId, changePassword } = tokenBody;
+
+                if (
+                    userId !== user.id ||
+                    changePassword !== true 
+                ) {
+                    return next([
+                        new CustomHTTPError({
+                            type: "ActionNotAllowed",
+                            title: "token",
+                            details:
+                                "Tokenul pentru schimbarea parolei nu este valid.",
+                            statusCode: 403,
+                        }),
+                    ]);
+                }
+            }
+
+            newData["password"] = await argon2.hash(newPassword);
+        }
+
         if (errors.length) return next(errors);
 
         const updateUser = await prisma.user.update({
@@ -987,4 +1106,5 @@ module.exports = {
     login,
     modifyUser,
     deleteUser,
+    forgotPassword,
 };
