@@ -950,7 +950,7 @@ async function modifyUser(req, res, next) {
             }
         }
 
-        if (newPassword || newPassword.trim() === "") {
+        if (newPassword || (typeof newPassword === 'string' && newPassword.trim() === "")) {
             err = validatePassword({
                 password: newPassword,
                 title: "newPassword",
