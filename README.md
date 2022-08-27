@@ -3,6 +3,7 @@
 ## :bookmark_tabs: Meniu
 
 * [Demo](#demo)
+* [Documentație backend](#docs)
 * [Aplicatia pe local](#local)
 * [Panou de administrare](#admin)
 * [Aplicația utilizatorului](#user)
@@ -22,6 +23,12 @@ Conturi default pentru fiecare tip de utilizator:
 | https://imp-act.ml/login |administrator |  administrator@admin.com   |adminadmin|
 | https://imp-act.ml/login |moderator  |  moderator@admin.com   |adminadmin|
 | https://imp-act.ml/login |cetatean  |  cetatean@admin.com|adminadmin| 
+
+<div id="docs"></div>
+
+## :scroll: Documentație backend
+
+[Link](https://documenter.getpostman.com/view/11692173/UVyuSuw6)
 
 <div id="local"></div>
 
